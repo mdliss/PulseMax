@@ -1,0 +1,463 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Set Up Project Environment",
+        "description": "Initialize the project environment with necessary tools and frameworks.",
+        "details": "Use Next.js 14 with App Router for the frontend. Set up Tailwind CSS for styling and Zustand for state management. Initialize a PostgreSQL database with TimescaleDB extension for time-series data. Configure Redis for caching and BullMQ for queuing.",
+        "testStrategy": "Verify the environment setup by running a sample Next.js application and checking database connectivity.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set Up Next.js 14 with App Router",
+            "description": "Initialize the Next.js 14 project with App Router.",
+            "dependencies": [],
+            "details": "Create a new Next.js 14 project and configure the App Router for navigation.",
+            "status": "pending",
+            "testStrategy": "Run a sample Next.js application to verify setup."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Tailwind CSS for Styling",
+            "description": "Add Tailwind CSS to the Next.js project for styling.",
+            "dependencies": [
+              1
+            ],
+            "details": "Install Tailwind CSS and configure it with Next.js for styling components.",
+            "status": "pending",
+            "testStrategy": "Check if Tailwind styles are applied correctly to components."
+          },
+          {
+            "id": 3,
+            "title": "Configure Zustand for State Management",
+            "description": "Set up Zustand for managing global state in the application.",
+            "dependencies": [
+              1
+            ],
+            "details": "Install Zustand and create a basic state management setup for the Next.js app.",
+            "status": "pending",
+            "testStrategy": "Verify state updates and retrieval using Zustand."
+          },
+          {
+            "id": 4,
+            "title": "Initialize PostgreSQL with TimescaleDB",
+            "description": "Set up a PostgreSQL database with TimescaleDB extension.",
+            "dependencies": [],
+            "details": "Install PostgreSQL and TimescaleDB, then configure the database for time-series data.",
+            "status": "pending",
+            "testStrategy": "Connect to the database and verify TimescaleDB extension is active."
+          },
+          {
+            "id": 5,
+            "title": "Configure Redis and BullMQ for Caching and Queuing",
+            "description": "Set up Redis for caching and BullMQ for task queuing.",
+            "dependencies": [],
+            "details": "Install Redis and BullMQ, then configure them for caching and queuing tasks in the application.",
+            "status": "pending",
+            "testStrategy": "Test Redis caching and BullMQ queuing with sample tasks."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement Real-Time Data Ingestion",
+        "description": "Develop a service to ingest data from various sources into TimescaleDB.",
+        "details": "Create a service using Node.js to poll data from the Rails API for session, customer, tutor, and booking data. Use webhooks for real-time updates where possible. Transform and validate data before storing it in TimescaleDB.",
+        "testStrategy": "Simulate data ingestion with test data and verify data integrity in TimescaleDB.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Develop Real-Time Marketplace Health Dashboard",
+        "description": "Create a dashboard to display real-time marketplace health metrics.",
+        "details": "Use React and Recharts to build a dashboard displaying active sessions, daily session volume, average session rating, tutor utilization rate, customer satisfaction score, and supply/demand balance. Implement auto-refresh every 30 seconds.",
+        "testStrategy": "Test dashboard responsiveness and accuracy of displayed metrics with sample data.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Customer Health Scoring System",
+        "description": "Develop a system to calculate and display customer health scores.",
+        "details": "Calculate risk scores based on first session success rate, session velocity, IB call frequency, goal completion status, and tutor consistency. Display sortable customer lists with drill-down capabilities.",
+        "testStrategy": "Validate risk score calculations with test scenarios and ensure alerts trigger correctly.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Calculate First Session Success Rate",
+            "description": "Develop the logic to calculate customer health scores based on the first session success rate.",
+            "dependencies": [],
+            "details": "Implement an algorithm to analyze the success rate of the first session for each customer. Integrate this metric into the overall health score calculation.",
+            "status": "pending",
+            "testStrategy": "Create test cases to validate the accuracy of success rate calculations."
+          },
+          {
+            "id": 2,
+            "title": "Analyze Session Velocity",
+            "description": "Create a system to evaluate session velocity as part of customer health scoring.",
+            "dependencies": [],
+            "details": "Develop a method to measure the frequency and speed of customer sessions. Incorporate this data into the health score.",
+            "status": "pending",
+            "testStrategy": "Test session velocity calculations with historical session data."
+          },
+          {
+            "id": 3,
+            "title": "Evaluate IB Call Frequency",
+            "description": "Implement a metric to assess the frequency of inbound calls for customer health scoring.",
+            "dependencies": [],
+            "details": "Design a process to track and analyze the frequency of inbound calls. Use this information to influence the health score.",
+            "status": "pending",
+            "testStrategy": "Simulate call frequency scenarios to ensure accurate data integration."
+          },
+          {
+            "id": 4,
+            "title": "Assess Goal Completion and Tutor Consistency",
+            "description": "Develop metrics for goal completion status and tutor consistency in health scoring.",
+            "dependencies": [],
+            "details": "Create algorithms to evaluate how often customers meet their goals and the consistency of tutor interactions. Integrate these metrics into the health score.",
+            "status": "pending",
+            "testStrategy": "Validate goal completion and tutor consistency metrics with sample data."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Create First Session Success Tracking",
+        "description": "Track and display first session success rates by tutor and subject.",
+        "details": "Develop a dashboard to show success rates by tutor, subject, and customer segment. Implement alerts for anomalies such as significant drops in success rates.",
+        "testStrategy": "Verify accuracy of success rate calculations and alert triggers with historical data.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Develop Session Velocity Monitoring",
+        "description": "Monitor session velocity and trigger alerts for at-risk customers.",
+        "details": "Track sessions per week by cohort and alert for low velocity. Visualize cohort retention curves and session frequency trends.",
+        "testStrategy": "Test velocity calculations and alert triggers with simulated data.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Build Supply vs. Demand Prediction Model",
+        "description": "Create a model to predict supply and demand imbalances.",
+        "details": "Use ARIMA or Prophet for time-series forecasting. Predict session volume by hour and track tutor availability. Generate alerts for imbalances.",
+        "testStrategy": "Evaluate model accuracy with historical data and adjust parameters for optimal performance.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement Automated Campaign Recommendations",
+        "description": "Develop a recommendation engine for recruiting campaign adjustments.",
+        "details": "Create rule-based logic to suggest budget changes and campaign priorities based on supply-demand data. Display recommendations in a card-based format.",
+        "testStrategy": "Test recommendation logic with various supply-demand scenarios and verify expected outcomes.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Rule-Based Logic for Recommendations",
+            "description": "Create the logic to suggest budget changes and campaign priorities.",
+            "dependencies": [],
+            "details": "Design and implement rule-based logic using supply-demand data to generate recommendations for campaign adjustments.",
+            "status": "pending",
+            "testStrategy": "Test logic with various data scenarios to ensure accuracy."
+          },
+          {
+            "id": 2,
+            "title": "Integrate with Supply-Demand Data Sources",
+            "description": "Connect the recommendation engine to existing supply-demand data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Establish connections to data sources and ensure real-time data integration for accurate recommendations.",
+            "status": "pending",
+            "testStrategy": "Verify data integration by comparing input data with expected outputs."
+          },
+          {
+            "id": 3,
+            "title": "Design UI for Recommendations Display",
+            "description": "Create a card-based UI to display recommendations.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Design and implement a user interface that presents recommendations in a clear, card-based format.",
+            "status": "pending",
+            "testStrategy": "Conduct usability testing to ensure clarity and accessibility of the recommendations display."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Develop Anomaly Detection & Alerting System",
+        "description": "Detect anomalies in marketplace metrics and alert operators.",
+        "details": "Monitor key metrics for statistical outliers and significant changes. Deliver alerts via dashboard notifications and email.",
+        "testStrategy": "Simulate anomalies in test data and verify alert accuracy and timeliness.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Create Churn Prediction Dashboard",
+        "description": "Develop a dashboard to predict and display customer churn risk.",
+        "details": "Use logistic regression for churn prediction. Display risk by customer segment and provide intervention recommendations.",
+        "testStrategy": "Validate model predictions with historical churn data and assess prediction accuracy.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Integrate Real-Time Updates with SSE",
+        "description": "Implement Server-Sent Events for real-time dashboard updates.",
+        "details": "Use SSE to push real-time updates to the dashboard. Ensure efficient data flow and minimal latency.",
+        "testStrategy": "Test real-time updates with simulated data changes and measure update latency.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Set Up Authentication with NextAuth.js",
+        "description": "Implement user authentication for the dashboard.",
+        "details": "Use NextAuth.js to set up authentication. Configure providers and secure API routes.",
+        "testStrategy": "Verify authentication flow with test users and ensure secure access to dashboard features.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Develop API Endpoints for Data Access",
+        "description": "Create API routes for accessing marketplace data.",
+        "details": "Implement RESTful API endpoints using Next.js API routes for accessing session, customer, and tutor data.",
+        "testStrategy": "Test API endpoints with various queries and validate response accuracy and performance.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Implement Redis Caching for Performance",
+        "description": "Use Redis to cache frequently accessed data.",
+        "details": "Set up Redis with a 15-minute TTL for caching. Optimize cache usage for high-demand data queries.",
+        "testStrategy": "Measure performance improvements with caching enabled and verify cache hit rates.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Deploy Application on Vercel",
+        "description": "Deploy the dashboard application to Vercel for production use.",
+        "details": "Configure Vercel for deployment, ensuring environment variables are set for database and API access.",
+        "testStrategy": "Verify deployment success by accessing the application on a public URL and testing core functionalities.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          11,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Set Up Email Alert System",
+        "description": "Implement email notifications for critical alerts.",
+        "details": "Use SendGrid to send email alerts for critical issues. Configure email templates and delivery settings.",
+        "testStrategy": "Test email delivery with various alert scenarios and ensure timely receipt.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Create Tutor Performance Dashboard",
+        "description": "Develop a dashboard to track tutor performance metrics.",
+        "details": "Display tutor performance data including success rates and average ratings. Highlight top and underperforming tutors.",
+        "testStrategy": "Validate performance metrics with historical data and ensure accurate flagging of tutor performance.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Implement Alert History and Management",
+        "description": "Develop a system to manage and view alert history.",
+        "details": "Create a view for alert history with filtering options. Allow users to acknowledge and resolve alerts.",
+        "testStrategy": "Test alert management features with simulated alerts and verify correct status updates.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Develop Export Functionality for Customer Data",
+        "description": "Enable export of customer data to CSV format.",
+        "details": "Implement a feature to export customer lists and details to CSV for offline analysis.",
+        "testStrategy": "Test export functionality with large datasets and verify data integrity in exported files.",
+        "priority": "low",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement Responsive Design for Mobile",
+        "description": "Ensure the dashboard is mobile-friendly with responsive design.",
+        "details": "Use Tailwind CSS to implement responsive design principles. Test the dashboard on various screen sizes.",
+        "testStrategy": "Verify layout and usability on mobile devices and adjust styles as necessary.",
+        "priority": "low",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Set Up Monitoring and Logging with Sentry",
+        "description": "Implement error monitoring and logging using Sentry.",
+        "details": "Integrate Sentry for tracking errors and performance issues. Configure alerts for critical errors.",
+        "testStrategy": "Simulate errors in the application and verify Sentry captures and reports them accurately.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Optimize Database Queries for Performance",
+        "description": "Improve database query performance for faster data access.",
+        "details": "Analyze and optimize SQL queries to reduce latency. Use indexes and query caching where applicable.",
+        "testStrategy": "Measure query performance before and after optimization and ensure significant improvements.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Implement User Feedback Mechanism",
+        "description": "Develop a system for users to provide feedback on the dashboard.",
+        "details": "Create a feedback form accessible from the dashboard. Store feedback in a dedicated database table for analysis.",
+        "testStrategy": "Test feedback submission and storage with various input scenarios.",
+        "priority": "low",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Conduct Usability Testing",
+        "description": "Perform usability testing to identify and resolve UX issues.",
+        "details": "Conduct testing sessions with representative users to gather feedback on usability and design.",
+        "testStrategy": "Analyze feedback and make necessary adjustments to improve user experience.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          20
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Prepare Documentation and User Guides",
+        "description": "Create comprehensive documentation and guides for users and developers.",
+        "details": "Document all features, API endpoints, and setup instructions. Create user guides for dashboard navigation and usage.",
+        "testStrategy": "Review documentation for completeness and clarity. Ensure guides are easy to follow and understand.",
+        "priority": "low",
+        "dependencies": [
+          3,
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-11-06T19:37:40.244Z",
+      "updated": "2025-11-06T19:37:40.244Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

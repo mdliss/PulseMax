@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__task-master-ai__parse_prd",
+      "mcp__task-master-ai__models",
+      "Bash(cp:*)",
+      "mcp__task-master-ai__expand_task",
+      "mcp__task-master-ai__complexity_report",
+      "mcp__task-master-ai__get_tasks"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enabledMcpjsonServers": [
+    "task-master-ai"
+  ],
+  "enableAllProjectMcpServers": true
+}
