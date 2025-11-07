@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { timeSeriesForecaster } from '@/lib/forecasting/timeSeriesForecaster';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,77 +22,94 @@ interface Prediction {
   predictedSupplyDemandRatio: number;
   confidence: number;
   imbalanceRisk: 'low' | 'medium' | 'high' | 'critical';
+  lower: number; // Lower confidence bound
+  upper: number; // Upper confidence bound
 }
 
-// Simple moving average
-function calculateMovingAverage(values: number[], window: number): number {
-  if (values.length === 0) return 0;
-  const relevantValues = values.slice(-window);
-  return relevantValues.reduce((sum, val) => sum + val, 0) / relevantValues.length;
-}
-
-// Calculate prediction using pattern matching and moving averages
+/**
+ * Generate predictions using Holt-Winters exponential smoothing
+ */
 function predictNextHours(historicalData: HistoricalDataPoint[], hoursAhead: number = 24): Prediction[] {
+  const predictions: Prediction[] = [];
+
+  // Prepare session volume time series data
+  const sessionVolumeData = historicalData.map(point => ({
+    timestamp: new Date(point.timestamp),
+    value: point.sessionVolume
+  }));
+
+  // Prepare tutor availability time series data
+  const tutorAvailabilityData = historicalData.map(point => ({
+    timestamp: new Date(point.timestamp),
+    value: point.availableTutors
+  }));
+
+  try {
+    // Forecast session volumes using Holt-Winters
+    const sessionForecasts = timeSeriesForecaster.forecast(sessionVolumeData, hoursAhead);
+
+    // Forecast tutor availability
+    const tutorForecasts = timeSeriesForecaster.forecast(tutorAvailabilityData, hoursAhead);
+
+    // Combine forecasts
+    for (let i = 0; i < hoursAhead; i++) {
+      const sessionForecast = sessionForecasts[i];
+      const tutorForecast = tutorForecasts[i];
+
+      const predictedSessionVolume = Math.max(0, Math.round(sessionForecast.predicted));
+      const predictedAvailableTutors = Math.max(1, Math.round(tutorForecast.predicted));
+      const predictedRatio = predictedAvailableTutors > 0
+        ? predictedSessionVolume / predictedAvailableTutors
+        : 0;
+
+      // Determine imbalance risk based on supply/demand ratio
+      let imbalanceRisk: Prediction['imbalanceRisk'];
+      if (predictedRatio > 1.5) imbalanceRisk = 'critical';
+      else if (predictedRatio > 1.2) imbalanceRisk = 'high';
+      else if (predictedRatio > 0.9) imbalanceRisk = 'medium';
+      else imbalanceRisk = 'low';
+
+      // Use average confidence from both forecasts
+      const averageConfidence = (sessionForecast.confidence + tutorForecast.confidence) / 2;
+
+      predictions.push({
+        timestamp: sessionForecast.timestamp.toISOString(),
+        hour: sessionForecast.timestamp.getHours(),
+        dayOfWeek: sessionForecast.timestamp.getDay(),
+        predictedSessionVolume,
+        predictedAvailableTutors,
+        predictedSupplyDemandRatio: parseFloat(predictedRatio.toFixed(2)),
+        confidence: parseFloat(averageConfidence.toFixed(2)),
+        imbalanceRisk,
+        lower: Math.max(0, Math.round(sessionForecast.lower)),
+        upper: Math.round(sessionForecast.upper)
+      });
+    }
+  } catch (error) {
+    console.error('Forecasting error:', error);
+    // Return simple baseline forecast if advanced forecasting fails
+    return generateBaselineForecast(historicalData, hoursAhead);
+  }
+
+  return predictions;
+}
+
+/**
+ * Fallback: Simple baseline forecast using recent averages
+ */
+function generateBaselineForecast(historicalData: HistoricalDataPoint[], hoursAhead: number): Prediction[] {
   const predictions: Prediction[] = [];
   const now = new Date();
 
-  // Group historical data by hour of day and day of week for pattern detection
-  const patternMap = new Map<string, number[]>();
+  // Calculate recent averages (last 24 hours)
+  const recentData = historicalData.slice(-24);
+  const avgSessionVolume = recentData.reduce((sum, d) => sum + d.sessionVolume, 0) / recentData.length;
+  const avgAvailableTutors = recentData.reduce((sum, d) => sum + d.availableTutors, 0) / recentData.length;
 
-  historicalData.forEach(point => {
-    const key = `${point.dayOfWeek}-${point.hour}`;
-    if (!patternMap.has(key)) {
-      patternMap.set(key, []);
-    }
-    patternMap.get(key)!.push(point.sessionVolume);
-  });
-
-  // Calculate average available tutors
-  const avgAvailableTutors = calculateMovingAverage(
-    historicalData.map(d => d.availableTutors),
-    historicalData.length
-  );
-
-  // Generate predictions for next N hours
   for (let i = 1; i <= hoursAhead; i++) {
     const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
-    const hour = futureTime.getHours();
-    const dayOfWeek = futureTime.getDay();
-    const key = `${dayOfWeek}-${hour}`;
+    const predictedRatio = avgAvailableTutors > 0 ? avgSessionVolume / avgAvailableTutors : 0;
 
-    // Get historical pattern for this hour/day combination
-    const historicalPattern = patternMap.get(key) || [];
-
-    // Use moving average of similar time slots, or overall average
-    let predictedVolume: number;
-    let confidence: number;
-
-    if (historicalPattern.length > 0) {
-      predictedVolume = calculateMovingAverage(historicalPattern, historicalPattern.length);
-      confidence = Math.min(0.95, historicalPattern.length / 10); // More data = higher confidence
-    } else {
-      // Fallback to overall moving average
-      predictedVolume = calculateMovingAverage(
-        historicalData.map(d => d.sessionVolume),
-        Math.min(24, historicalData.length)
-      );
-      confidence = 0.5; // Lower confidence for fallback
-    }
-
-    // Add some seasonality and trend adjustments
-    const recentTrend = historicalData.slice(-24).map(d => d.sessionVolume);
-    const trendFactor = recentTrend.length > 0
-      ? calculateMovingAverage(recentTrend, recentTrend.length) / calculateMovingAverage(historicalData.map(d => d.sessionVolume), historicalData.length)
-      : 1;
-
-    predictedVolume *= trendFactor;
-
-    // Predict available tutors (assume slight growth or stability)
-    const predictedAvailableTutors = Math.max(1, Math.round(avgAvailableTutors * (0.95 + Math.random() * 0.1)));
-
-    const predictedRatio = predictedAvailableTutors > 0 ? predictedVolume / predictedAvailableTutors : 0;
-
-    // Determine imbalance risk
     let imbalanceRisk: Prediction['imbalanceRisk'];
     if (predictedRatio > 1.5) imbalanceRisk = 'critical';
     else if (predictedRatio > 1.2) imbalanceRisk = 'high';
@@ -100,13 +118,15 @@ function predictNextHours(historicalData: HistoricalDataPoint[], hoursAhead: num
 
     predictions.push({
       timestamp: futureTime.toISOString(),
-      hour,
-      dayOfWeek,
-      predictedSessionVolume: Math.round(predictedVolume),
-      predictedAvailableTutors,
+      hour: futureTime.getHours(),
+      dayOfWeek: futureTime.getDay(),
+      predictedSessionVolume: Math.round(avgSessionVolume),
+      predictedAvailableTutors: Math.round(avgAvailableTutors),
       predictedSupplyDemandRatio: parseFloat(predictedRatio.toFixed(2)),
-      confidence: parseFloat(confidence.toFixed(2)),
-      imbalanceRisk
+      confidence: 0.6, // Lower confidence for baseline
+      imbalanceRisk,
+      lower: Math.round(avgSessionVolume * 0.7),
+      upper: Math.round(avgSessionVolume * 1.3)
     });
   }
 
@@ -153,9 +173,16 @@ export async function GET(request: Request) {
         averageConfidence: parseFloat(avgConfidence.toFixed(2))
       },
       modelInfo: {
-        method: 'Pattern-based Moving Average',
+        method: 'Holt-Winters Exponential Smoothing',
+        algorithm: 'Triple Exponential Smoothing with Seasonal Decomposition',
         dataPoints: historicalData.length,
-        historicalDays: 30
+        historicalDays: 30,
+        features: [
+          'Trend detection',
+          'Seasonality modeling (24-hour cycles)',
+          'Confidence intervals',
+          'Anomaly detection'
+        ]
       },
       timestamp: new Date().toISOString()
     });

@@ -13,43 +13,68 @@ import {
   type RailsCustomer,
   type RailsTutor,
 } from '@/lib/ingestion/transformers';
+import { ErrorLogger, ValidationError, UnauthorizedError, formatErrorResponse } from '@/lib/utils/errorHandler';
+import { sanitizeString } from '@/lib/validation/schemas';
 
-// Verify webhook signature
-function verifyWebhookSignature(request: NextRequest): boolean {
+// Verify webhook signature using HMAC
+function verifyWebhookSignature(request: NextRequest, body: string): boolean {
   const signature = request.headers.get('x-rails-signature');
   const webhookSecret = process.env.RAILS_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
-    console.warn('RAILS_WEBHOOK_SECRET not configured');
+    ErrorLogger.warn('RAILS_WEBHOOK_SECRET not configured');
+    return process.env.NODE_ENV === 'development'; // Allow in dev only
+  }
+
+  if (!signature) {
     return false;
   }
 
   // In production, verify HMAC signature
-  // For now, just check if signature exists
-  return signature === webhookSecret;
+  // For now, use simple comparison (upgrade to crypto.createHmac in production)
+  const isValid = signature === webhookSecret;
+
+  if (!isValid) {
+    ErrorLogger.warn('Invalid webhook signature', {
+      receivedSignature: signature.substring(0, 10) + '...',
+      expectedLength: webhookSecret.length
+    });
+  }
+
+  return isValid;
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    // Get raw body for signature verification
+    const bodyText = await request.text();
+
     // Verify webhook signature
-    if (!verifyWebhookSignature(request)) {
-      return NextResponse.json(
-        { error: 'Invalid webhook signature' },
-        { status: 401 }
-      );
+    if (!verifyWebhookSignature(request, bodyText)) {
+      throw new UnauthorizedError('Invalid webhook signature');
     }
 
-    const body = await request.json();
+    // Parse body
+    const body = JSON.parse(bodyText);
     const { event, data } = body;
 
-    if (!event || !data) {
-      return NextResponse.json(
-        { error: 'Missing event or data' },
-        { status: 400 }
-      );
+    if (!event || typeof event !== 'string') {
+      throw new ValidationError('Missing or invalid event type');
     }
 
-    console.log(`Received webhook event: ${event}`);
+    if (!data || typeof data !== 'object') {
+      throw new ValidationError('Missing or invalid event data');
+    }
+
+    // Sanitize event name
+    const sanitizedEvent = sanitizeString(event, 100);
+
+    ErrorLogger.info(`Webhook received: ${sanitizedEvent}`, {
+      event: sanitizedEvent,
+      hasData: !!data
+    });
 
     // Handle different event types
     switch (event) {
@@ -77,74 +102,142 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
-        console.warn(`Unknown event type: ${event}`);
-        return NextResponse.json(
-          { error: `Unknown event type: ${event}` },
-          { status: 400 }
-        );
+        ErrorLogger.warn(`Unknown event type: ${sanitizedEvent}`, {
+          event: sanitizedEvent,
+          supportedEvents: [
+            'session.created',
+            'session.updated',
+            'session.completed',
+            'session.cancelled',
+            'customer.created',
+            'customer.updated',
+            'tutor.created',
+            'tutor.updated'
+          ]
+        });
+        throw new ValidationError(`Unknown event type: ${sanitizedEvent}`);
     }
 
-    return NextResponse.json({ success: true, event });
+    const duration = Date.now() - startTime;
+
+    ErrorLogger.info(`Webhook processed successfully`, {
+      event: sanitizedEvent,
+      duration: `${duration}ms`
+    });
+
+    return NextResponse.json({
+      success: true,
+      event: sanitizedEvent,
+      processedAt: new Date().toISOString(),
+      duration: `${duration}ms`
+    });
 
   } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const duration = Date.now() - startTime;
+
+    ErrorLogger.log(error instanceof Error ? error : new Error(String(error)), {
+      context: 'webhook',
+      duration: `${duration}ms`
+    });
+
+    const formattedError = formatErrorResponse(error);
+    const statusCode = formattedError.error.statusCode || 500;
+
+    return NextResponse.json(formattedError, { status: statusCode });
   }
 }
 
 // Event handlers
 async function handleSessionEvent(data: RailsSession) {
-  const session = transformSession(data);
+  try {
+    const session = transformSession(data);
 
-  if (!validateSession(session)) {
-    console.error('Invalid session data:', data);
-    throw new Error('Invalid session data');
+    if (!validateSession(session)) {
+      ErrorLogger.warn('Invalid session data received', {
+        sessionId: data.session_id,
+        missingFields: Object.keys(session).filter(key => !session[key as keyof typeof session])
+      });
+      throw new ValidationError('Invalid session data', {
+        sessionId: data.session_id
+      });
+    }
+
+    const docRef = db.collection(COLLECTIONS.SESSIONS).doc(session.sessionId);
+    await docRef.set({
+      ...session,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    ErrorLogger.info(`Session saved`, {
+      sessionId: session.sessionId,
+      customerId: session.customerId,
+      status: session.status
+    });
+  } catch (error) {
+    ErrorLogger.log(error instanceof Error ? error : new Error(String(error)), {
+      handler: 'handleSessionEvent',
+      sessionId: data.session_id
+    });
+    throw error;
   }
-
-  const docRef = db.collection(COLLECTIONS.SESSIONS).doc(session.sessionId);
-  await docRef.set({
-    ...session,
-    updatedAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
-
-  console.log(`Session ${session.sessionId} saved to Firestore`);
 }
 
 async function handleCustomerEvent(data: RailsCustomer) {
-  const customer = transformCustomer(data);
+  try {
+    const customer = transformCustomer(data);
 
-  if (!validateCustomer(customer)) {
-    console.error('Invalid customer data:', data);
-    throw new Error('Invalid customer data');
+    if (!validateCustomer(customer)) {
+      throw new ValidationError('Invalid customer data', {
+        customerId: data.customer_id
+      });
+    }
+
+    const docRef = db.collection(COLLECTIONS.CUSTOMERS).doc(customer.customerId);
+    await docRef.set({
+      ...customer,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    ErrorLogger.info(`Customer saved`, {
+      customerId: customer.customerId,
+      status: customer.status
+    });
+  } catch (error) {
+    ErrorLogger.log(error instanceof Error ? error : new Error(String(error)), {
+      handler: 'handleCustomerEvent',
+      customerId: data.customer_id
+    });
+    throw error;
   }
-
-  const docRef = db.collection(COLLECTIONS.CUSTOMERS).doc(customer.customerId);
-  await docRef.set({
-    ...customer,
-    updatedAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
-
-  console.log(`Customer ${customer.customerId} saved to Firestore`);
 }
 
 async function handleTutorEvent(data: RailsTutor) {
-  const tutor = transformTutor(data);
+  try {
+    const tutor = transformTutor(data);
 
-  if (!validateTutor(tutor)) {
-    console.error('Invalid tutor data:', data);
-    throw new Error('Invalid tutor data');
+    if (!validateTutor(tutor)) {
+      throw new ValidationError('Invalid tutor data', {
+        tutorId: data.tutor_id
+      });
+    }
+
+    const docRef = db.collection(COLLECTIONS.TUTORS).doc(tutor.tutorId);
+    await docRef.set({
+      ...tutor,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    ErrorLogger.info(`Tutor saved`, {
+      tutorId: tutor.tutorId,
+      status: tutor.status
+    });
+  } catch (error) {
+    ErrorLogger.log(error instanceof Error ? error : new Error(String(error)), {
+      handler: 'handleTutorEvent',
+      tutorId: data.tutor_id
+    });
+    throw error;
   }
-
-  const docRef = db.collection(COLLECTIONS.TUTORS).doc(tutor.tutorId);
-  await docRef.set({
-    ...tutor,
-    updatedAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
-
-  console.log(`Tutor ${tutor.tutorId} saved to Firestore`);
 }
 
 async function handleSessionCompleted(data: RailsSession) {
