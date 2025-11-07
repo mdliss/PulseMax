@@ -6,13 +6,21 @@
       "Bash(cp:*)",
       "mcp__task-master-ai__expand_task",
       "mcp__task-master-ai__complexity_report",
-      "mcp__task-master-ai__get_tasks"
+      "mcp__task-master-ai__get_tasks",
+      "mcp__task-master-ai__next_task",
+      "Bash(npx create-next-app:*)",
+      "mcp__task-master-ai__set_task_status",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "mcp__task-master-ai__update_task",
+      "Bash(test:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "task-master-ai"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }
