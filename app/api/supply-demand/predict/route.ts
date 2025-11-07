@@ -101,8 +101,33 @@ function generateBaselineForecast(historicalData: HistoricalDataPoint[], hoursAh
   const predictions: Prediction[] = [];
   const now = new Date();
 
-  // Calculate recent averages (last 24 hours)
-  const recentData = historicalData.slice(-24);
+  // Calculate recent averages (use all available data if less than 24 hours)
+  const recentData = historicalData.length >= 24 ? historicalData.slice(-24) : historicalData;
+
+  // Ensure we have at least some data
+  if (recentData.length === 0) {
+    // Emergency fallback with reasonable defaults
+    const avgSessionVolume = 15;
+    const avgAvailableTutors = 20;
+
+    for (let i = 1; i <= hoursAhead; i++) {
+      const futureTime = new Date(now.getTime() + i * 60 * 60 * 1000);
+      predictions.push({
+        timestamp: futureTime.toISOString(),
+        hour: futureTime.getHours(),
+        dayOfWeek: futureTime.getDay(),
+        predictedSessionVolume: avgSessionVolume,
+        predictedAvailableTutors: avgAvailableTutors,
+        predictedSupplyDemandRatio: 0.75,
+        confidence: 0.3,
+        imbalanceRisk: 'low',
+        lower: avgSessionVolume - 5,
+        upper: avgSessionVolume + 5
+      });
+    }
+    return predictions;
+  }
+
   const avgSessionVolume = recentData.reduce((sum, d) => sum + d.sessionVolume, 0) / recentData.length;
   const avgAvailableTutors = recentData.reduce((sum, d) => sum + d.availableTutors, 0) / recentData.length;
 

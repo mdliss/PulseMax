@@ -3,9 +3,17 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin (server-side)
 if (!getApps().length) {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-    : undefined;
+  let serviceAccount = undefined;
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    try {
+      // Remove surrounding single or double quotes if present
+      const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.trim().replace(/^['"]|['"]$/g, '');
+      serviceAccount = JSON.parse(key);
+    } catch (error) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', error);
+    }
+  }
 
   if (serviceAccount) {
     initializeApp({
@@ -22,7 +30,15 @@ if (!getApps().length) {
 
 export const db = getFirestore();
 
-// Enable settings for better performance
-db.settings({
-  ignoreUndefinedProperties: true,
-});
+// Enable settings for better performance (only once)
+let settingsConfigured = false;
+if (!settingsConfigured) {
+  try {
+    db.settings({
+      ignoreUndefinedProperties: true,
+    });
+    settingsConfigured = true;
+  } catch (error) {
+    // Settings already configured, ignore
+  }
+}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
 import { collection, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
+import { getCached, setCache, CACHE_TTL } from '@/lib/cache/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,14 +63,24 @@ export async function GET(request: Request) {
     const daysParam = searchParams.get('days');
     const days = daysParam ? parseInt(daysParam) : 30;
 
+    // Check cache first
+    const cacheKey = `supply-demand-historical:days:${days}`;
+    const cached = await getCached(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
     // Use mock data if Firebase is not configured
     if (!isFirebaseConfigured || !db) {
-      return NextResponse.json({
+      const mockResponse = {
         data: generateMockHistoricalData(),
         source: 'mock',
         daysIncluded: days,
         totalDataPoints: generateMockHistoricalData().length
-      });
+      };
+      // Cache mock data too (shorter TTL)
+      await setCache(cacheKey, mockResponse, CACHE_TTL.METRICS);
+      return NextResponse.json(mockResponse);
     }
 
     const now = new Date();
@@ -135,12 +146,31 @@ export async function GET(request: Request) {
     // Sort by timestamp
     historicalData.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    return NextResponse.json({
+    // If we don't have enough data for forecasting (need at least 24 hours), fall back to mock data
+    if (historicalData.length < 24) {
+      console.log(`Insufficient real data (${historicalData.length} points). Using mock data for forecasting.`);
+      const mockResponse = {
+        data: generateMockHistoricalData(),
+        source: 'mock (insufficient real data)',
+        daysIncluded: days,
+        totalDataPoints: generateMockHistoricalData().length
+      };
+      // Cache fallback data (1 hour TTL since it's generated data)
+      await setCache(cacheKey, mockResponse, CACHE_TTL.FORECASTS);
+      return NextResponse.json(mockResponse);
+    }
+
+    const firebaseResponse = {
       data: historicalData,
       source: 'firebase',
       daysIncluded: days,
       totalDataPoints: historicalData.length
-    });
+    };
+
+    // Cache Firebase data (15 minute TTL)
+    await setCache(cacheKey, firebaseResponse, CACHE_TTL.CUSTOMERS);
+
+    return NextResponse.json(firebaseResponse);
   } catch (error) {
     console.error('Error fetching historical supply-demand data:', error);
     return NextResponse.json(

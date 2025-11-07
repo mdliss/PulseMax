@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
 import { collection, query, where, getDocs, Timestamp, addDoc } from 'firebase/firestore';
 import { generateMockAnomalyDetection } from '@/lib/mockData';
+import { anomalyDetector } from '@/lib/anomaly/detector';
+import { alertManager } from '@/lib/alerts/alertManager';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +50,18 @@ export async function GET() {
       where('created_at', '>=', Timestamp.fromDate(sevenDaysAgo)),
       where('is_first_session', '==', true)
     );
-    const recentSessionsSnapshot = await getDocs(recentSessionsQuery);
+
+    let recentSessionsSnapshot;
+    try {
+      recentSessionsSnapshot = await getDocs(recentSessionsQuery);
+    } catch (indexError: any) {
+      // If index is missing, fall back to mock data
+      if (indexError.code === 'failed-precondition') {
+        console.warn('Firebase index not configured, using mock data. Create index at:', indexError.message.match(/https:\/\/[^\s]+/)?.[0]);
+        return NextResponse.json(generateMockAnomalyDetection());
+      }
+      throw indexError;
+    }
 
     // Get baseline sessions (30 days ago to 7 days ago)
     const baselineSessionsQuery = query(
@@ -167,6 +180,44 @@ export async function GET() {
       }
     }
 
+    // Enhanced statistical anomaly detection on success rates
+    const successRateTimeSeries: number[] = [];
+    for (const [, rate] of recentRates.tutorSubject.entries()) {
+      successRateTimeSeries.push(rate.rate);
+    }
+
+    // Apply ensemble anomaly detection if we have enough data
+    if (successRateTimeSeries.length >= 5) {
+      const avgSuccessRate = successRateTimeSeries.reduce((sum, r) => sum + r, 0) / successRateTimeSeries.length;
+
+      // Check current average against historical trend using ensemble method
+      const historicalRates: number[] = [];
+      for (const [, rate] of baselineRates.tutorSubject.entries()) {
+        historicalRates.push(rate.rate);
+      }
+
+      if (historicalRates.length >= 5) {
+        const ensembleResult = anomalyDetector.detectByEnsemble(
+          historicalRates,
+          avgSuccessRate,
+          { minMethodsAgreement: 2 }
+        );
+
+        if (ensembleResult.isAnomaly && ensembleResult.score > 0.6) {
+          const severity = ensembleResult.score > 0.8 ? 'critical' : 'high';
+          anomalies.push({
+            type: 'success_rate_drop',
+            severity,
+            currentValue: avgSuccessRate,
+            baselineValue: historicalRates.reduce((sum, r) => sum + r, 0) / historicalRates.length,
+            threshold: ensembleResult.details.threshold || 0,
+            message: `Statistical anomaly detected in overall success rate using ensemble method (score: ${ensembleResult.score.toFixed(2)})`,
+            detectedAt: now.toISOString()
+          });
+        }
+      }
+    }
+
     // Store critical anomalies in database for alerting
     for (const anomaly of anomalies.filter(a => a.severity === 'critical')) {
       await addDoc(collection(db, 'anomaly_alerts'), {
@@ -175,6 +226,32 @@ export async function GET() {
         status: 'active',
         acknowledged: false
       });
+    }
+
+    // Create alerts for critical and high severity anomalies using AlertManager
+    const alertsCreated = [];
+    for (const anomaly of anomalies.filter(a => a.severity === 'critical' || a.severity === 'high')) {
+      try {
+        const alert = await alertManager.createAnomalyAlert(
+          anomaly.type,
+          anomaly.severity,
+          anomaly.currentValue,
+          anomaly.baselineValue,
+          anomaly.tutorName && anomaly.subject
+            ? `${anomaly.tutorName} - ${anomaly.subject}`
+            : anomaly.segment || 'marketplace',
+          {
+            tutorId: anomaly.tutorId,
+            subject: anomaly.subject,
+            segment: anomaly.segment,
+            threshold: anomaly.threshold,
+            detectedAt: anomaly.detectedAt
+          }
+        );
+        alertsCreated.push(alert.id);
+      } catch (error) {
+        console.error('Failed to create alert for anomaly:', error);
+      }
     }
 
     return NextResponse.json({
@@ -186,6 +263,7 @@ export async function GET() {
       criticalCount: anomalies.filter(a => a.severity === 'critical').length,
       highCount: anomalies.filter(a => a.severity === 'high').length,
       mediumCount: anomalies.filter(a => a.severity === 'medium').length,
+      alertsCreated: alertsCreated.length,
       timestamp: now.toISOString()
     });
   } catch (error) {

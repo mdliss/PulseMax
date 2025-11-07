@@ -1,0 +1,453 @@
+PULSEMAX ANALYTICS DASHBOARD - API DOCUMENTATION
+================================================
+
+Base URL: https://your-domain.com/api
+Authentication: NextAuth.js session-based authentication
+
+==================================================
+CORE ANALYTICS ENDPOINTS
+==================================================
+
+1. MARKETPLACE HEALTH
+---------------------
+Endpoint: GET /api/marketplace/health
+Description: Retrieve real-time marketplace health metrics
+Response: JSON with overall health score and key metrics
+Example:
+  {
+    "healthScore": 85,
+    "totalSessions": 1250,
+    "activeCustomers": 320,
+    "activeTutors": 180,
+    "revenue": 45000
+  }
+
+2. CUSTOMER HEALTH CALCULATION
+-------------------------------
+Endpoint: POST /api/health/calculate
+Description: Calculate health score for individual customers
+Request Body: { customerId: string }
+Response: Health score and factors
+Example Request:
+  POST /api/health/calculate
+  { "customerId": "cust_123" }
+Example Response:
+  {
+    "customerId": "cust_123",
+    "healthScore": 72,
+    "factors": {
+      "sessionFrequency": 0.8,
+      "engagement": 0.7,
+      "satisfaction": 0.9
+    }
+  }
+
+==================================================
+PREDICTIVE ANALYTICS ENDPOINTS
+==================================================
+
+3. SUPPLY-DEMAND PREDICTION
+----------------------------
+Endpoint: GET /api/supply-demand/predict
+Query Parameters:
+  - startDate: ISO date string (required)
+  - endDate: ISO date string (required)
+Description: Predict tutor supply and student demand for date range
+Response: Prediction data with confidence intervals
+Example:
+  GET /api/supply-demand/predict?startDate=2025-12-01&endDate=2025-12-31
+  Response:
+  {
+    "predictions": [
+      {
+        "date": "2025-12-01",
+        "demand": 450,
+        "supply": 380,
+        "gap": 70,
+        "confidence": 0.87
+      }
+    ],
+    "summary": {
+      "avgGap": 65,
+      "maxGap": 120,
+      "peakDemandDate": "2025-12-15"
+    }
+  }
+
+4. SUPPLY-DEMAND HISTORICAL DATA
+---------------------------------
+Endpoint: GET /api/supply-demand/historical
+Query Parameters:
+  - days: number (default: 30)
+Description: Retrieve historical supply-demand data
+Response: Array of daily supply/demand data points
+
+5. CHURN PREDICTION
+-------------------
+Endpoint: GET /api/churn-prediction
+Description: Get customers at risk of churning with risk scores
+Response: Array of at-risk customers with factors
+Example:
+  {
+    "customers": [
+      {
+        "id": "cust_456",
+        "name": "John Doe",
+        "riskScore": 0.85,
+        "riskLevel": "high",
+        "factors": ["declining_usage", "low_satisfaction"],
+        "recommendedActions": ["personal_outreach", "discount_offer"]
+      }
+    ],
+    "summary": {
+      "total": 45,
+      "highRisk": 12,
+      "mediumRisk": 18,
+      "lowRisk": 15
+    }
+  }
+
+==================================================
+MONITORING ENDPOINTS
+==================================================
+
+6. SESSION VELOCITY
+-------------------
+Endpoint: GET /api/session-velocity
+Description: Monitor session creation rate and velocity trends
+Response: Real-time velocity metrics and anomaly detection
+Example:
+  {
+    "currentVelocity": 24.5,
+    "averageVelocity": 22.3,
+    "trend": "increasing",
+    "anomalyDetected": false,
+    "timeWindow": "1h"
+  }
+
+7. ANOMALY DETECTION
+--------------------
+Endpoint: GET /api/anomaly-detection
+Description: Detect anomalies across all metrics
+Response: List of detected anomalies with severity
+Example:
+  {
+    "anomalies": [
+      {
+        "metric": "session_velocity",
+        "severity": "high",
+        "currentValue": 45,
+        "expectedRange": [18, 28],
+        "timestamp": "2025-11-07T09:00:00Z"
+      }
+    ]
+  }
+
+8. SUCCESS TRACKING
+-------------------
+Endpoint: GET /api/success-tracking
+Description: Track first session success rates and metrics
+Response: Success metrics for new customer sessions
+
+==================================================
+ALERTING ENDPOINTS
+==================================================
+
+9. ALERTS
+---------
+Endpoint: GET /api/alerts
+Description: Retrieve active alerts
+Response: Array of active alerts with details
+Example:
+  {
+    "alerts": [
+      {
+        "id": "alert_789",
+        "type": "supply_demand_gap",
+        "severity": "high",
+        "message": "Supply gap of 80 tutors on 2025-12-15",
+        "createdAt": "2025-11-07T08:00:00Z",
+        "status": "active"
+      }
+    ]
+  }
+
+Endpoint: POST /api/alerts
+Description: Create new alert (admin only)
+Request Body: { type, severity, message, metadata }
+
+10. SUPPLY-DEMAND ALERTS
+------------------------
+Endpoint: GET /api/supply-demand/alerts
+Description: Get supply-demand specific alerts
+
+11. VELOCITY ALERTS
+-------------------
+Endpoint: GET /api/velocity-alerts
+Description: Get session velocity anomaly alerts
+
+==================================================
+REAL-TIME UPDATES (SSE)
+==================================================
+
+12. SSE MARKETPLACE UPDATES
+---------------------------
+Endpoint: GET /api/sse/marketplace
+Description: Server-sent events for real-time marketplace updates
+Connection: Keep-alive streaming connection
+Events:
+  - marketplace-update: New health metrics
+  - alert: New alerts triggered
+Example Usage:
+  const eventSource = new EventSource('/api/sse/marketplace');
+  eventSource.addEventListener('marketplace-update', (e) => {
+    const data = JSON.parse(e.data);
+    console.log('New metrics:', data);
+  });
+
+13. SSE ALERTS STREAM
+---------------------
+Endpoint: GET /api/sse/alerts
+Description: Real-time alert notifications via SSE
+Events: New alerts as they're triggered
+
+==================================================
+RECOMMENDATION ENDPOINTS
+==================================================
+
+14. CAMPAIGN RECOMMENDATIONS
+----------------------------
+Endpoint: GET /api/campaign-recommendations
+Description: AI-powered campaign recommendations for customer engagement
+Response: Array of recommended campaigns with targeting
+Example:
+  {
+    "recommendations": [
+      {
+        "id": "camp_123",
+        "type": "re-engagement",
+        "title": "Win Back Inactive Customers",
+        "targetSegment": "inactive_30_days",
+        "estimatedROI": 2.3,
+        "recommendedChannel": "email",
+        "priority": "high"
+      }
+    ]
+  }
+
+==================================================
+PERFORMANCE ENDPOINTS
+==================================================
+
+15. TUTOR PERFORMANCE
+---------------------
+Endpoint: GET /api/tutor-performance
+Description: Retrieve tutor performance metrics and rankings
+Response: Array of tutors with performance scores
+Example:
+  {
+    "tutors": [
+      {
+        "id": "tutor_321",
+        "name": "Jane Smith",
+        "performanceScore": 92,
+        "totalSessions": 145,
+        "avgRating": 4.8,
+        "studentSatisfaction": 0.95,
+        "trend": "improving"
+      }
+    ]
+  }
+
+==================================================
+DATA EXPORT ENDPOINTS
+==================================================
+
+16. CUSTOMER EXPORT
+-------------------
+Endpoint: GET /api/customers/export
+Query Parameters:
+  - format: "csv" | "json" (default: csv)
+  - filter: Optional filter criteria
+Description: Export customer data for analysis
+Response: CSV or JSON file download
+Headers:
+  Content-Type: text/csv or application/json
+  Content-Disposition: attachment; filename="customers.csv"
+
+==================================================
+USER FEEDBACK ENDPOINTS
+==================================================
+
+17. FEEDBACK SUBMISSION
+-----------------------
+Endpoint: POST /api/feedback
+Description: Submit user feedback
+Request Body:
+  {
+    "type": "bug" | "feature" | "improvement" | "other",
+    "subject": string (max 100 chars),
+    "message": string (max 1000 chars),
+    "email": string (optional),
+    "page": string (optional),
+    "userAgent": string (optional)
+  }
+Response:
+  {
+    "success": true,
+    "id": "feedback_456",
+    "message": "Feedback submitted successfully"
+  }
+
+Endpoint: GET /api/feedback
+Description: View feedback (admin only, requires authentication)
+
+==================================================
+WEBHOOK ENDPOINTS
+==================================================
+
+18. RAILS WEBHOOK
+-----------------
+Endpoint: POST /api/webhooks/rails
+Description: Receive real-time data updates from Rails backend
+Request Body: Varies by event type
+Authentication: Webhook signature verification
+
+==================================================
+TESTING ENDPOINTS (Development Only)
+==================================================
+
+19. TEST ALERTS
+---------------
+Endpoint: POST /api/test-alerts
+Description: Generate test alerts for development/testing
+
+20. TEST EMAIL
+--------------
+Endpoint: POST /api/test-email
+Description: Send test email notifications
+
+21. TEST SENTRY
+---------------
+Endpoint: GET /api/test-sentry
+Description: Trigger test error for Sentry monitoring
+
+==================================================
+AUTHENTICATION
+==================================================
+
+22. NEXTAUTH
+------------
+Endpoint: /api/auth/[...nextauth]
+Description: NextAuth.js authentication endpoints
+Supported Routes:
+  - GET /api/auth/signin - Sign in page
+  - POST /api/auth/signin - Sign in action
+  - GET /api/auth/signout - Sign out
+  - GET /api/auth/session - Get session
+  - GET /api/auth/csrf - Get CSRF token
+  - GET /api/auth/providers - Get configured providers
+
+==================================================
+ERROR RESPONSES
+==================================================
+
+Standard Error Format:
+{
+  "error": "Error message",
+  "code": "ERROR_CODE",
+  "details": {} // Optional additional info
+}
+
+HTTP Status Codes:
+- 200: Success
+- 201: Created
+- 400: Bad Request (validation error)
+- 401: Unauthorized (authentication required)
+- 403: Forbidden (insufficient permissions)
+- 404: Not Found
+- 500: Internal Server Error
+
+==================================================
+RATE LIMITING
+==================================================
+
+Rate Limits (per user/IP):
+- Standard endpoints: 100 requests/minute
+- SSE connections: 5 concurrent connections
+- Export endpoints: 10 requests/hour
+
+Rate limit headers:
+- X-RateLimit-Limit: Request limit
+- X-RateLimit-Remaining: Remaining requests
+- X-RateLimit-Reset: Unix timestamp when limit resets
+
+==================================================
+PAGINATION
+==================================================
+
+Endpoints supporting pagination use query parameters:
+- page: Page number (default: 1)
+- limit: Items per page (default: 50, max: 100)
+
+Paginated Response Format:
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "total": 250,
+    "pages": 5
+  }
+}
+
+==================================================
+CACHING
+==================================================
+
+Cache-Control Headers:
+- Predictive analytics: 5 minutes
+- Real-time metrics: No cache
+- Static reports: 1 hour
+
+Redis caching used for:
+- Frequently accessed predictions
+- Aggregated metrics
+- Session data
+
+==================================================
+BEST PRACTICES
+==================================================
+
+1. Authentication:
+   - Always check session before making requests
+   - Handle 401 errors by redirecting to sign in
+
+2. Error Handling:
+   - Always check response status
+   - Parse error messages from response body
+   - Implement retry logic for transient failures
+
+3. Real-time Updates:
+   - Use SSE endpoints for live data
+   - Implement reconnection logic for SSE
+   - Fall back to polling if SSE unavailable
+
+4. Performance:
+   - Use pagination for large datasets
+   - Leverage caching headers
+   - Batch requests when possible
+
+5. Data Export:
+   - Use export endpoints for bulk data
+   - Respect rate limits on export endpoints
+   - Consider off-peak hours for large exports
+
+==================================================
+SUPPORT
+==================================================
+
+For API issues or questions:
+- Documentation: /docs
+- Support: support@pulsemax.com
+- GitHub Issues: github.com/your-org/pulsemax/issues

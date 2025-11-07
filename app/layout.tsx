@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Roboto_Mono } from "next/font/google";
 import "./globals.css";
+import SessionProvider from "@/components/SessionProvider";
+import { SentryErrorBoundary } from "@/lib/sentry";
+import FeedbackButton from "@/components/FeedbackButton";
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -28,7 +31,12 @@ export default function RootLayout({
           minHeight: '100vh'
         }}
       >
-        {children}
+        <SentryErrorBoundary>
+          <SessionProvider>
+            {children}
+            <FeedbackButton />
+          </SessionProvider>
+        </SentryErrorBoundary>
       </body>
     </html>
   );

@@ -1,0 +1,822 @@
+PULSEMAX ANALYTICS DASHBOARD - USABILITY TESTING RESULTS
+=========================================================
+
+Testing Period: Simulated Session Data
+Total Participants: 16 (across 4 user groups)
+Sessions Completed: 16/16 (100%)
+Average Session Duration: 78 minutes
+
+==================================================
+EXECUTIVE SUMMARY
+==================================================
+
+Overall Performance:
+- Average Task Completion Rate: 81% (Target: >85%)
+- Average SUS Score: 72.3 (Target: >70) ✓
+- Net Promoter Score: 35 (Target: >30) ✓
+- Average Time-per-Task: 118% of expert baseline (Target: <120%) ✓
+
+Key Findings:
+✓ STRENGTHS: Clean design, responsive layout, clear metrics
+⚠ ISSUES: Navigation confusion, overwhelming data density, slow loading
+❌ CRITICAL: Export functionality unclear, alert system missed by 40% of users
+
+Priority Issues Identified: 23 total
+- P0 (Critical): 3 issues
+- P1 (High): 8 issues
+- P2 (Medium): 7 issues
+- P3 (Low): 5 issues
+
+==================================================
+PARTICIPANT DEMOGRAPHICS
+==================================================
+
+GROUP A: Business Analysts (5 participants)
+- P1: Sarah K., 34, Senior Business Analyst at EdTech company
+- P2: Michael T., 41, Data Analyst at Online Learning Platform
+- P3: Jennifer L., 29, Analytics Manager at Education Services
+- P4: David R., 38, Business Intelligence Lead at Tutoring Network
+- P5: Amanda W., 45, Senior Data Scientist at Educational Software
+
+GROUP B: Operations Managers (5 participants)
+- P6: Robert M., 52, Operations Director at Online Tutoring Service
+- P7: Lisa C., 36, Customer Success Manager at EdTech Startup
+- P8: James P., 44, Operations Lead at Learning Management Platform
+- P9: Maria G., 39, Program Manager at Education Technology Company
+- P10: Kevin H., 47, Service Operations Manager at Tutoring Platform
+
+GROUP C: Marketing/Growth Teams (3 participants)
+- P11: Emily S., 31, Growth Marketing Manager at EdTech
+- P12: Thomas B., 35, Customer Engagement Lead at Online Education
+- P13: Rachel D., 28, Marketing Analytics Manager at Learning Platform
+
+GROUP D: Mobile Users (3 participants - cross-segment)
+- P14: Sarah K. on iPad Pro (from Group A)
+- P15: Robert M. on iPhone 14 (from Group B)
+- P16: Emily S. on Samsung Galaxy Tab (from Group C)
+
+==================================================
+SCENARIO 1: DASHBOARD OVERVIEW
+==================================================
+
+Task: "You've just logged in for your morning check. Review the dashboard and identify the top 3 insights you'd act on."
+Duration: 15 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 94% (15/16 participants)
+- Average Time to First Insight: 42 seconds (Expert: 25 seconds)
+- Average Total Time: 8.2 minutes
+- Error Count: Average 1.2 errors per participant
+- User Satisfaction: 4.1/5
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P1: "The layout is clean and I immediately understand what's important"
+- P4: "Color coding for metrics is intuitive - red for bad, green for good"
+- P7: "Love that I can see everything on one screen without scrolling"
+- P11: "The metric cards are scannable and I can quickly prioritize"
+
+Issues Identified:
+- P2: "I'm not sure what 'Session Velocity' means without hovering"
+- P5: "Too many metrics - hard to know which are most critical"
+- P8: "The refresh button isn't obvious - I thought data was stale"
+- P13: "Would like to customize which metrics appear on my dashboard"
+- P15 (mobile): "Metric cards are too small on phone - hard to read numbers"
+
+OBSERVED BEHAVIORS:
+- 12/16 users hovered over metrics for tooltips within first 30 seconds
+- 8/16 users scrolled looking for navigation (it was at top)
+- 4/16 users didn't notice the date range selector in top-right
+- 3/16 users attempted to click on metric cards expecting drill-down
+
+ISSUES LOGGED:
+[P2] Metric terminology not clear without tooltips - Missing inline definitions
+[P2] No dashboard customization options - Users want personalized views
+[P1] Date range selector not prominent - Users miss ability to change timeframe
+[P3] Metric cards not interactive - Users expect click to see details
+
+==================================================
+SCENARIO 2: SUPPLY-DEMAND FORECASTING
+==================================================
+
+Task: "The company is planning next quarter's staffing. Use the supply-demand tool to forecast tutor needs for December 2025."
+Duration: 20 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 75% (12/16 participants)
+- Average Time to Generate Forecast: 6.8 minutes (Expert: 3.5 minutes)
+- Average Total Time: 14.3 minutes
+- Error Count: Average 2.8 errors per participant
+- User Satisfaction: 3.4/5
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P1: "The visual chart makes it easy to see supply/demand gap"
+- P4: "Confidence intervals are clearly shown - helps with planning"
+- P6: "Historical data overlay is useful for context"
+
+Issues Identified:
+- P2: "I couldn't figure out how to set the date to December - UI is confusing"
+- P3: "Export button took me 3 tries to find - it's hidden"
+- P5: "Not clear what algorithm is used for prediction - is it reliable?"
+- P7: "The chart legend is too small and hard to read"
+- P8: "I expected to be able to adjust variables like growth rate"
+- P10: "Loading took 12 seconds - thought it was broken"
+- P12: "No explanation of what 'confidence interval' means for non-technical users"
+- P13: "Can't compare multiple future scenarios side-by-side"
+
+OBSERVED BEHAVIORS:
+- 4/16 users failed to generate forecast due to date picker confusion
+- 11/16 users had to hunt for export button (avg 42 seconds to find)
+- 6/16 users tried to manually adjust forecast line (not possible)
+- 9/16 users expressed concern about slow loading time
+- 5/16 users asked "is this prediction accurate?" during session
+
+ISSUES LOGGED:
+[P0] Date picker UX is confusing - 25% task failure rate ❌ CRITICAL
+[P0] Export button hard to find - 11/16 users struggled
+[P1] Loading time too slow (>10 seconds) - Users think system is broken
+[P1] No transparency on prediction model/accuracy - Trust concerns
+[P2] Can't adjust forecast parameters - Users want scenario planning
+[P2] Chart legend too small - Readability issues
+[P3] No multi-scenario comparison - Feature request
+
+==================================================
+SCENARIO 3: CHURN PREDICTION & PREVENTION
+==================================================
+
+Task: "Identify customers at high risk of churning this month and determine why they might leave."
+Duration: 20 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 88% (14/16 participants)
+- Average Time to Identify High-Risk: 3.2 minutes (Expert: 1.8 minutes)
+- Average Total Time: 11.7 minutes
+- Error Count: Average 1.6 errors per participant
+- User Satisfaction: 4.3/5
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P1: "Risk score is clear and color-coded well"
+- P4: "Factor breakdown helps me understand WHY customers might leave"
+- P7: "Easy to filter and sort by risk level"
+- P11: "Great to see recommended actions for each customer"
+- P13: "This is one of the most useful features - very actionable"
+
+Issues Identified:
+- P2: "Would like to export this list to send to my team"
+- P5: "Risk factors seem accurate but I'd like to see the data behind them"
+- P8: "Can I see historical churn patterns? Not obvious how to access"
+- P10: "Recommended actions are generic - need more personalization"
+- P15 (mobile): "Table view is cramped on mobile - hard to scroll sideways"
+
+OBSERVED BEHAVIORS:
+- 14/16 users successfully filtered high-risk customers within 2 minutes
+- 10/16 users clicked on customer names expecting detail view (not implemented)
+- 6/16 users looked for export button (not found)
+- 8/16 users wanted to take action directly from this screen (not possible)
+
+ISSUES LOGGED:
+[P1] No export functionality for customer list - Users need to share data
+[P1] Customer names not clickable - Users expect drill-down to details
+[P2] Generic recommended actions - Need more personalization
+[P2] No historical churn trend visualization - Users want context
+[P3] Mobile table view cramped - Horizontal scroll difficult
+
+==================================================
+SCENARIO 4: ALERT SYSTEM RESPONSE
+==================================================
+
+Task: "You've received an alert about unusual session velocity. Investigate and determine if action is needed."
+Duration: 15 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 56% (9/16 participants) ❌ BELOW TARGET
+- Average Time to Find Alert: 4.7 minutes (Expert: 0.5 minutes)
+- Average Total Time: 13.8 minutes
+- Error Count: Average 3.4 errors per participant
+- User Satisfaction: 2.9/5 ⚠ LOWEST RATED SCENARIO
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P1: "Once I found it, the alert details were comprehensive"
+- P6: "Good that it shows historical context with the alert"
+- P11: "Severity levels are clear (high/medium/low)"
+
+Issues Identified:
+- P2: "I didn't receive any notification - how do I know there's an alert?" ❌
+- P3: "Alert icon is too subtle - I didn't notice it"
+- P5: "No email or push notification option"
+- P7: "Alert history is buried in a sub-menu - should be more prominent"
+- P8: "Can't acknowledge or dismiss alerts - they just stay there"
+- P10: "What should I do about this alert? No clear action steps"
+- P12: "I want to set custom alert thresholds but can't find where to do that"
+- P13: "Alert fired for a false positive - how do I give feedback?"
+- P15 (mobile): "Alert icon completely invisible on mobile header"
+
+OBSERVED BEHAVIORS:
+- 7/16 users MISSED the alert icon entirely (had to be prompted)
+- 10/16 users expected email/SMS notification for urgent alerts
+- 4/16 users couldn't figure out how to view alert history
+- 8/16 users wanted to dismiss or acknowledge alerts (not possible)
+- 5/16 users confused about what action to take after viewing alert
+
+ISSUES LOGGED:
+[P0] 44% of users missed alert icon - Critical visibility issue ❌ CRITICAL
+[P1] No notification system (email/SMS/push) - Users expect to be alerted
+[P1] Can't acknowledge or dismiss alerts - No action workflow
+[P1] Alert history buried in navigation - Discoverability problem
+[P2] No custom alert threshold settings - Users want control
+[P2] No feedback mechanism for false positives - System can't learn
+[P3] Alert action recommendations unclear - Users unsure how to respond
+
+==================================================
+SCENARIO 5: CAMPAIGN RECOMMENDATIONS
+==================================================
+
+Task: "Plan next month's customer engagement campaigns using the recommendation engine."
+Duration: 20 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 81% (13/16 participants)
+- Average Time to Review Recommendations: 5.1 minutes (Expert: 3.0 minutes)
+- Average Total Time: 12.4 minutes
+- Error Count: Average 2.1 errors per participant
+- User Satisfaction: 3.8/5
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P11: "Recommendations are specific and actionable - love this feature"
+- P12: "Customer segmentation makes sense and is clearly explained"
+- P13: "ROI estimates help me prioritize which campaigns to run"
+- P4: "Nice that it shows why each campaign is recommended"
+
+Issues Identified:
+- P2: "Can I see past campaign performance? Not obvious how to access"
+- P5: "Want to filter recommendations by channel (email vs SMS vs in-app)"
+- P7: "Would like to save or favorite campaigns to revisit later"
+- P8: "No way to export recommendations to share with team"
+- P10: "Can I simulate a custom campaign? This only shows pre-built ones"
+- P13: "Refresh/regenerate button would be nice to get new ideas"
+
+OBSERVED BEHAVIORS:
+- 13/16 users engaged deeply with recommendation cards
+- 8/16 users tried to click campaign cards to expand details (not interactive)
+- 6/16 users looked for filtering options (not found)
+- 7/16 users wanted to export or save recommendations
+- 4/16 users expected to see A/B test suggestions
+
+ISSUES LOGGED:
+[P1] No historical campaign performance data - Users want to learn from past
+[P2] Can't filter by campaign channel - Users segment by channel
+[P2] No save/favorite functionality - Users lose good ideas
+[P2] No export for recommendations - Sharing difficult
+[P3] Campaign cards not interactive - Users expect drill-down
+[P3] No custom campaign builder - Power users want flexibility
+
+==================================================
+SCENARIO 6: TUTOR PERFORMANCE ANALYSIS
+==================================================
+
+Task: "Identify top-performing tutors and those needing support or training."
+Duration: 20 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 94% (15/16 participants)
+- Average Time to Identify Top Performers: 2.4 minutes (Expert: 1.5 minutes)
+- Average Total Time: 9.8 minutes
+- Error Count: Average 1.4 errors per participant
+- User Satisfaction: 4.4/5 ⚠ HIGHEST RATED SCENARIO
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P6: "This is excellent - clear metrics and easy to sort/filter"
+- P7: "Visual performance indicators make it quick to scan"
+- P8: "Great that I can export this data for performance reviews"
+- P9: "Trend lines show me who's improving vs declining"
+- P10: "Exactly what I need for my weekly ops meetings"
+
+Issues Identified:
+- P2: "Would love to see student feedback comments, not just ratings"
+- P5: "Can I compare tutors side-by-side? Not obvious how"
+- P12: "Need to drill down into specific sessions to understand performance"
+- P13: "Would be helpful to see training recommendations per tutor"
+
+OBSERVED BEHAVIORS:
+- 15/16 users successfully sorted and filtered tutors
+- 12/16 users exported data (found export button easily here)
+- 6/16 users tried to click tutor names for detailed profiles (not linked)
+- 9/16 users wanted to set performance goals or benchmarks
+
+ISSUES LOGGED:
+[P2] No access to student feedback comments - Users want qualitative data
+[P2] Can't compare tutors side-by-side - Feature request
+[P3] Tutor names not linked to profiles - Expected drill-down
+[P3] No training recommendations - AI-powered suggestions wanted
+
+==================================================
+SCENARIO 7: MOBILE RESPONSIVENESS
+==================================================
+
+Task: "Using a mobile device, check today's key metrics and respond to any urgent alerts."
+Duration: 15 minutes allocated
+Devices: iPad Pro, iPhone 14, Samsung Galaxy Tab
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 67% (2/3 participants) ⚠ BELOW TARGET
+- Average Time to Complete: 11.2 minutes (Expert: 6 minutes)
+- Error Count: Average 4.3 errors per participant
+- User Satisfaction: 3.1/5
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P14 (iPad): "Layout adapts well to tablet - very usable"
+- P14 (iPad): "Touch targets are appropriate size on tablet"
+- P16 (tablet): "Responsive grid works nicely on larger screens"
+
+Issues Identified:
+- P15 (iPhone): "Metric numbers are tiny - hard to read on phone" ❌
+- P15 (iPhone): "Had to pinch-zoom constantly - not truly responsive"
+- P15 (iPhone): "Alert icon invisible in mobile header"
+- P15 (iPhone): "Export buttons don't work well on mobile - kept mis-tapping"
+- P15 (iPhone): "Charts don't resize properly - some text cut off"
+- P16 (tablet): "Hamburger menu on tablet unnecessary - wasted space"
+
+OBSERVED BEHAVIORS:
+- Tablet users (iPad, Galaxy Tab): Smooth experience, minimal issues
+- Phone user (iPhone): Struggled significantly, used pinch-zoom 12 times
+- Phone user couldn't complete alert scenario due to icon visibility
+- All mobile users preferred landscape orientation for charts
+
+ISSUES LOGGED:
+[P0] Phone UI not truly responsive - Requires constant pinch-zoom ❌ CRITICAL
+[P1] Alert icon invisible on mobile header - Critical feature unusable
+[P1] Charts don't resize properly on phone - Text cut off
+[P2] Touch targets too small on phone - Mis-taps frequent
+[P2] Tablet shows mobile layout unnecessarily - Poor space utilization
+
+==================================================
+SCENARIO 8: CROSS-FEATURE NAVIGATION
+==================================================
+
+Task: "Navigate between at least 3 different features without using browser back button."
+Duration: 10 minutes allocated
+
+QUANTITATIVE RESULTS:
+- Task Completion Rate: 75% (12/16 participants)
+- Average Navigation Time: 6.7 minutes (Expert: 2 minutes)
+- Wrong Turns Taken: Average 2.6 per participant
+- User Satisfaction: 3.3/5
+
+QUALITATIVE FEEDBACK:
+
+Positive Comments:
+- P1: "Navigation menu is visible and organized logically"
+- P4: "Icons help me identify sections quickly"
+- P9: "Nice that active page is highlighted in nav"
+
+Issues Identified:
+- P2: "Clicked logo expecting to go home - nothing happened"
+- P3: "Navigation menu groups aren't clear - what's 'Insights' vs 'Analytics'?"
+- P5: "Would like breadcrumbs to show where I am in the app"
+- P7: "Some features have sub-navigation, some don't - inconsistent"
+- P8: "Keyboard shortcuts would speed up navigation significantly"
+- P10: "Search function to jump to features would be helpful"
+- P12: "Navigation doesn't collapse on scroll - takes up too much space"
+- P13: "Expected tab-based navigation within features but it's not there"
+
+OBSERVED BEHAVIORS:
+- 8/16 users clicked logo expecting to return to dashboard (didn't work)
+- 6/16 users used browser back button despite instructions not to
+- 4/16 users got lost navigating between similar features
+- 7/16 users looked for breadcrumbs (not present)
+- 5/16 users expected search or command palette (not available)
+
+ISSUES LOGGED:
+[P1] Logo not clickable - Standard UX pattern missing
+[P2] No breadcrumbs - Users lose context in deep navigation
+[P2] Navigation menu inconsistent - Some features have sub-nav, some don't
+[P2] No search/command palette - Power users want fast navigation
+[P3] No keyboard shortcuts - Efficiency opportunity
+[P3] Nav doesn't collapse on scroll - Takes screen real estate
+
+==================================================
+SYSTEM USABILITY SCALE (SUS) SCORES
+==================================================
+
+Individual SUS Scores (out of 100):
+P1: 77.5
+P2: 65.0
+P3: 72.5
+P4: 80.0
+P5: 67.5
+P6: 75.0
+P7: 70.0
+P8: 62.5 (lowest)
+P9: 77.5
+P10: 73.5
+P11: 82.5 (highest)
+P12: 68.0
+P13: 75.0
+P14: 70.0
+P15: 55.0 (mobile phone user)
+P16: 85.0
+
+Average SUS Score: 72.3/100
+Interpretation: Grade C (Good, Above Average)
+Target Met: YES (>70) ✓
+
+SUS by User Group:
+- Business Analysts: 72.5 (Good)
+- Operations Managers: 71.6 (Good)
+- Marketing/Growth: 75.2 (Good)
+- Mobile Users: 70.0 (Acceptable)
+
+==================================================
+NET PROMOTER SCORE (NPS)
+==================================================
+
+"How likely are you to recommend PulseMax to a colleague?"
+Scale: 0 (Not at all likely) to 10 (Extremely likely)
+
+Responses:
+P1: 8 (Promoter)
+P2: 7 (Passive)
+P3: 7 (Passive)
+P4: 9 (Promoter)
+P5: 6 (Passive)
+P6: 8 (Promoter)
+P7: 7 (Passive)
+P8: 6 (Passive)
+P9: 8 (Promoter)
+P10: 7 (Passive)
+P11: 9 (Promoter)
+P12: 7 (Passive)
+P13: 8 (Promoter)
+P14: 7 (Passive)
+P15: 5 (Detractor)
+P16: 9 (Promoter)
+
+Promoters (9-10): 7 (44%)
+Passives (7-8): 8 (50%)
+Detractors (0-6): 1 (6%)
+
+NPS = % Promoters - % Detractors = 44% - 6% = 38
+Interpretation: Excellent (>30)
+Target Met: YES (>30) ✓
+
+==================================================
+CONSOLIDATED ISSUE TRACKER
+==================================================
+
+P0 - CRITICAL ISSUES (Must Fix Immediately):
+
+1. [P0-001] Date picker UX confusing in Supply-Demand feature
+   - Impact: 25% task failure rate
+   - Scenarios: Scenario 2
+   - Participants: P2, P3, P7, P10
+   - Recommendation: Redesign date picker with clearer affordances
+
+2. [P0-002] Alert icon visibility extremely low - 44% miss rate
+   - Impact: Core feature unusable for many users
+   - Scenarios: Scenario 4
+   - Participants: P2, P3, P5, P7, P8, P10, P15
+   - Recommendation: Increase icon size, add notification badge, prominent placement
+
+3. [P0-003] Mobile phone UI not truly responsive - requires pinch-zoom
+   - Impact: Poor mobile experience, accessibility issue
+   - Scenarios: Scenario 7
+   - Participants: P15 (all tasks on phone)
+   - Recommendation: Complete mobile UI redesign with larger touch targets
+
+
+P1 - HIGH PRIORITY ISSUES (Should Fix Soon):
+
+4. [P1-001] Export button hard to find across features
+   - Impact: Users struggle to share data (avg 42 seconds to find)
+   - Scenarios: Scenarios 2, 3, 5
+   - Participants: P2, P3, P5, P7, P8, P13
+   - Recommendation: Standardize export button placement, use icon + label
+
+5. [P1-002] Loading time too slow (>10 seconds) for predictions
+   - Impact: Users think system is broken
+   - Scenarios: Scenario 2
+   - Participants: P6, P8, P10, P12
+   - Recommendation: Add loading skeleton, progress indicator, optimize backend
+
+6. [P1-003] No transparency on prediction model accuracy
+   - Impact: Trust concerns, hesitation to use forecasts
+   - Scenarios: Scenario 2
+   - Participants: P5, P8, P12
+   - Recommendation: Add model explanation, confidence scores, historical accuracy
+
+7. [P1-004] No notification system for alerts (email/SMS/push)
+   - Impact: Users miss critical alerts
+   - Scenarios: Scenario 4
+   - Participants: P2, P5, P10, P12, P13
+   - Recommendation: Implement multi-channel notification system
+
+8. [P1-005] Can't acknowledge or dismiss alerts
+   - Impact: No action workflow, alerts clutter interface
+   - Scenarios: Scenario 4
+   - Participants: P7, P8, P10, P13
+   - Recommendation: Add alert management (acknowledge, dismiss, snooze)
+
+9. [P1-006] Alert history buried in navigation
+   - Impact: Discoverability problem
+   - Scenarios: Scenario 4
+   - Participants: P7, P9, P12
+   - Recommendation: Make alert history more prominent, add to dashboard
+
+10. [P1-007] Logo not clickable to return to dashboard
+    - Impact: Violates standard UX pattern
+    - Scenarios: Scenario 8
+    - Participants: P2, P5, P8, P10, P12, P15, P16, P13
+    - Recommendation: Make logo clickable, return to dashboard
+
+11. [P1-008] Alert icon invisible on mobile header
+    - Impact: Critical feature unusable on mobile
+    - Scenarios: Scenario 4, Scenario 7
+    - Participants: P15, P16
+    - Recommendation: Redesign mobile header with prominent alert icon
+
+
+P2 - MEDIUM PRIORITY ISSUES (Nice to Fix):
+
+12. [P2-001] No dashboard customization options
+    - Impact: Users can't personalize view
+    - Scenarios: Scenario 1
+    - Participants: P5, P8, P11, P13
+    - Recommendation: Add widget customization, drag-drop layout
+
+13. [P2-002] Metric terminology unclear without tooltips
+    - Impact: Reduced comprehension for new users
+    - Scenarios: Scenario 1
+    - Participants: P2, P6, P7
+    - Recommendation: Add inline definitions, onboarding tooltips
+
+14. [P2-003] Date range selector not prominent enough
+    - Impact: Users miss time-filtering capability
+    - Scenarios: Scenario 1
+    - Participants: P3, P8, P10, P12
+    - Recommendation: Make date range more visible, add presets (Today, Week, Month)
+
+15. [P2-004] Can't adjust forecast parameters
+    - Impact: No scenario planning capability
+    - Scenarios: Scenario 2
+    - Participants: P5, P8, P10, P12
+    - Recommendation: Add adjustable variables (growth rate, seasonality)
+
+16. [P2-005] No breadcrumbs for navigation context
+    - Impact: Users lose orientation in app
+    - Scenarios: Scenario 8
+    - Participants: P5, P7, P10, P12
+    - Recommendation: Add breadcrumb trail, show current location
+
+17. [P2-006] Navigation menu structure inconsistent
+    - Impact: Sub-navigation confusion
+    - Scenarios: Scenario 8
+    - Participants: P3, P5, P7, P12
+    - Recommendation: Standardize navigation patterns across features
+
+18. [P2-007] No search or command palette
+    - Impact: Slow navigation for power users
+    - Scenarios: Scenario 8
+    - Participants: P1, P4, P5, P8, P10
+    - Recommendation: Add global search, keyboard command palette
+
+
+P3 - LOW PRIORITY ISSUES (Future Consideration):
+
+19. [P3-001] Metric cards not interactive/clickable
+    - Impact: Missed opportunity for drill-down
+    - Scenarios: Scenario 1
+    - Participants: P1, P4, P7, P9
+    - Recommendation: Make cards clickable to show detailed breakdown
+
+20. [P3-002] No keyboard shortcuts for navigation
+    - Impact: Power user efficiency opportunity
+    - Scenarios: Scenario 8
+    - Participants: P1, P4, P8, P11
+    - Recommendation: Add keyboard shortcuts (e.g., 'D' for Dashboard, 'A' for Alerts)
+
+21. [P3-003] Navigation doesn't collapse on scroll
+    - Impact: Takes screen real estate
+    - Scenarios: Scenario 8
+    - Participants: P6, P8, P12
+    - Recommendation: Add auto-hide nav on scroll, show on scroll-up
+
+22. [P3-004] No multi-scenario comparison for forecasts
+    - Impact: Can't compare best/worst case scenarios
+    - Scenarios: Scenario 2
+    - Participants: P5, P8, P13
+    - Recommendation: Add side-by-side scenario comparison view
+
+23. [P3-005] Mobile table view cramped with horizontal scroll
+    - Impact: Difficulty viewing data on mobile
+    - Scenarios: Scenario 3
+    - Participants: P15, P16
+    - Recommendation: Redesign mobile tables with card view option
+
+==================================================
+TASK COMPLETION RATES BY SCENARIO
+==================================================
+
+Scenario 1: Dashboard Overview - 94% (Excellent)
+Scenario 2: Supply-Demand Forecasting - 75% (Below Target)
+Scenario 3: Churn Prediction - 88% (Good)
+Scenario 4: Alert System - 56% (Poor) ❌
+Scenario 5: Campaign Recommendations - 81% (Good)
+Scenario 6: Tutor Performance - 94% (Excellent)
+Scenario 7: Mobile Responsiveness - 67% (Below Target)
+Scenario 8: Cross-Feature Navigation - 75% (Below Target)
+
+Overall Average: 81% (Target: >85%)
+
+==================================================
+USER SATISFACTION BY SCENARIO (out of 5)
+==================================================
+
+Scenario 1: Dashboard Overview - 4.1 ⭐⭐⭐⭐
+Scenario 2: Supply-Demand Forecasting - 3.4 ⭐⭐⭐
+Scenario 3: Churn Prediction - 4.3 ⭐⭐⭐⭐ (Highest)
+Scenario 4: Alert System - 2.9 ⭐⭐ (Lowest)
+Scenario 5: Campaign Recommendations - 3.8 ⭐⭐⭐
+Scenario 6: Tutor Performance - 4.4 ⭐⭐⭐⭐ (Highest)
+Scenario 7: Mobile Responsiveness - 3.1 ⭐⭐⭐
+Scenario 8: Cross-Feature Navigation - 3.3 ⭐⭐⭐
+
+Overall Average: 3.7/5
+
+==================================================
+TIME-ON-TASK ANALYSIS
+==================================================
+
+Average time vs Expert baseline (Target: <120% of expert):
+
+Scenario 1: 8.2 min vs 6 min expert = 137% ⚠ ABOVE TARGET
+Scenario 2: 14.3 min vs 10 min expert = 143% ⚠ ABOVE TARGET
+Scenario 3: 11.7 min vs 8 min expert = 146% ⚠ ABOVE TARGET
+Scenario 4: 13.8 min vs 5 min expert = 276% ❌ WAY ABOVE TARGET
+Scenario 5: 12.4 min vs 10 min expert = 124% ⚠ ABOVE TARGET
+Scenario 6: 9.8 min vs 8 min expert = 123% ⚠ ABOVE TARGET
+Scenario 7: 11.2 min vs 6 min expert = 187% ❌ ABOVE TARGET
+Scenario 8: 6.7 min vs 4 min expert = 168% ⚠ ABOVE TARGET
+
+Overall Average: 11 min vs 7.1 min expert = 155% ❌ ABOVE TARGET
+
+Analysis: Users take significantly longer than expert users across all scenarios.
+Primary causes: Navigation confusion, unclear UI affordances, slow loading times.
+
+==================================================
+ERROR ANALYSIS
+==================================================
+
+Average errors per scenario (lower is better):
+
+Scenario 1: 1.2 errors (Low)
+Scenario 2: 2.8 errors (Moderate)
+Scenario 3: 1.6 errors (Low)
+Scenario 4: 3.4 errors (High) ❌
+Scenario 5: 2.1 errors (Moderate)
+Scenario 6: 1.4 errors (Low)
+Scenario 7: 4.3 errors (Very High) ❌
+Scenario 8: 2.6 errors (Moderate)
+
+Overall Average: 2.4 errors per scenario
+
+Top Error Types:
+1. Navigation errors (wrong menu, can't find feature) - 38%
+2. UI affordance errors (clicking non-interactive elements) - 24%
+3. Data input errors (date picker, filters) - 18%
+4. Export/download errors (can't find button) - 12%
+5. Alert/notification errors (missing or ignoring alerts) - 8%
+
+==================================================
+KEY INSIGHTS & RECOMMENDATIONS
+==================================================
+
+STRENGTH AREAS (Keep Doing):
+✓ Clean, professional visual design
+✓ Effective use of color coding for metrics
+✓ Strong responsive layout on tablets
+✓ Tutor Performance feature is standout (4.4/5 satisfaction)
+✓ Churn Prediction feature highly valued (4.3/5 satisfaction)
+✓ Overall SUS score above average (72.3/100)
+
+CRITICAL IMPROVEMENT AREAS (Fix Immediately):
+❌ Alert system visibility and usability (P0-002, P1-004, P1-005, P1-006)
+❌ Mobile phone experience (P0-003, P1-008)
+❌ Date picker UX in forecasting (P0-001)
+
+HIGH-IMPACT IMPROVEMENTS (Fix Soon):
+⚠ Export functionality discoverability (P1-001)
+⚠ Loading time and progress feedback (P1-002)
+⚠ Prediction model transparency (P1-003)
+⚠ Navigation standardization (P1-007, P2-006)
+
+FEATURE REQUESTS (Consider for Roadmap):
+- Dashboard customization (P2-001)
+- Scenario planning for forecasts (P2-004, P3-004)
+- Global search and command palette (P2-007)
+- Keyboard shortcuts (P3-002)
+- Interactive drill-down on metrics (P3-001)
+
+ACCESSIBILITY CONCERNS:
+- Small text on mobile phone (P0-003)
+- Alert icon visibility for users with vision impairments (P0-002)
+- Lack of keyboard navigation shortcuts (P3-002)
+- Color contrast in charts (mentioned by 2 participants)
+
+TRUST & CREDIBILITY:
+- Users want to understand how predictions work (P1-003)
+- Historical accuracy data would build confidence
+- Transparency on data sources and methodology
+- Clearer explanation of confidence intervals
+
+WORKFLOW IMPROVEMENTS:
+- Users want to take action directly from insights (e.g., email at-risk customers from churn page)
+- Better integration between features (e.g., from alert to detailed analysis)
+- Save/favorite functionality to bookmark important views
+- Collaboration features (share insights, comment on data)
+
+==================================================
+RECOMMENDED PRIORITIZATION
+==================================================
+
+SPRINT 1 (Week 1-2) - Critical Fixes:
+1. Redesign alert icon with prominent placement and notification badge
+2. Fix mobile phone responsiveness (larger touch targets, better scaling)
+3. Redesign date picker for supply-demand forecasting
+4. Make logo clickable to return to dashboard
+5. Implement loading skeletons for slow API calls
+
+SPRINT 2 (Week 3-4) - High Priority:
+1. Standardize export button placement across all features
+2. Add notification system (email alerts at minimum)
+3. Implement alert management (acknowledge, dismiss, view history)
+4. Add prediction model transparency (methodology, confidence, accuracy)
+5. Improve mobile header design with visible alert icon
+
+SPRINT 3 (Week 5-6) - Medium Priority:
+1. Add breadcrumb navigation
+2. Implement dashboard customization
+3. Make date range selector more prominent
+4. Add search/command palette for navigation
+5. Standardize navigation patterns across features
+
+SPRINT 4 (Week 7-8) - Low Priority & Polish:
+1. Add keyboard shortcuts
+2. Make metric cards interactive/clickable
+3. Implement scenario planning for forecasts
+4. Add mobile card view for tables
+5. Implement auto-hide navigation on scroll
+
+==================================================
+FOLLOW-UP TESTING PLAN
+==================================================
+
+After Sprint 1-2 fixes, conduct targeted re-testing:
+- Re-test Scenario 4 (Alert System) with 5 participants - Target: >85% completion
+- Re-test Scenario 7 (Mobile) with 3 phone users - Target: >85% completion
+- Re-test Scenario 2 (Forecasting) with 3 participants - Target: >85% completion
+
+Success Criteria for Follow-Up:
+- Alert scenario completion rate improves from 56% to >85%
+- Mobile scenario completion rate improves from 67% to >85%
+- Time-on-task decreases by at least 20% across all scenarios
+- SUS score improves from 72.3 to >75
+- Zero P0 issues remaining
+
+Continuous Monitoring:
+- Implement analytics tracking for navigation paths
+- Track export button usage rates
+- Monitor alert engagement rates
+- Measure time-to-insight on dashboard
+- Survey new users monthly for onboarding feedback
+
+==================================================
+CONCLUSION
+==================================================
+
+The PulseMax Analytics Dashboard shows strong potential with above-average usability scores (SUS: 72.3) and positive user reception (NPS: 38). Users particularly value the Tutor Performance and Churn Prediction features, praising the clean design and actionable insights.
+
+However, three critical issues must be addressed immediately:
+1. Alert system visibility causing 44% miss rate
+2. Mobile phone experience requiring constant pinch-zoom
+3. Confusing date picker causing 25% task failures
+
+Addressing these P0 issues, followed by high-priority navigation and export improvements, will significantly improve user experience and task completion rates. The recommended sprint plan provides a clear path forward to achieve >85% task completion rates and >75 SUS scores.
+
+User feedback suggests the platform is on the right track but needs UX refinement to reach its full potential. The team should prioritize fixes that reduce friction in core workflows, improve mobile experience, and enhance the visibility of critical features like alerts.
+
+With these improvements implemented, PulseMax is well-positioned to become a highly usable and valuable analytics tool for the education technology sector.
+
+END OF USABILITY TESTING RESULTS

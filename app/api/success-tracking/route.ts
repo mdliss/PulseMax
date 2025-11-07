@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { generateMockSuccessTracking } from '@/lib/mockData';
+import { getCached, setCache, CACHE_TTL } from '@/lib/cache/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,15 +24,25 @@ interface CustomerSegmentRate {
 
 export async function GET(request: Request) {
   try {
-    // Use mock data if Firebase is not configured
-    if (!isFirebaseConfigured || !db) {
-      return NextResponse.json(generateMockSuccessTracking());
-    }
-
     const { searchParams } = new URL(request.url);
     const tutorId = searchParams.get('tutorId');
     const subject = searchParams.get('subject');
     const segment = searchParams.get('segment');
+
+    // Check cache first
+    const cacheKey = `success-tracking:tutor:${tutorId || 'all'}:subject:${subject || 'all'}:segment:${segment || 'all'}`;
+    const cached = await getCached(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
+    // Use mock data if Firebase is not configured
+    if (!isFirebaseConfigured || !db) {
+      const mockData = generateMockSuccessTracking();
+      // Cache mock data (shorter TTL)
+      await setCache(cacheKey, mockData, CACHE_TTL.METRICS);
+      return NextResponse.json(mockData);
+    }
 
     // Get all sessions
     let sessionsQuery = query(collection(db, 'sessions'));
@@ -142,7 +153,7 @@ export async function GET(request: Request) {
       ? parseFloat(((totalSuccessful / totalFirstSessions) * 100).toFixed(2))
       : 0;
 
-    return NextResponse.json({
+    const responseData = {
       overallSuccessRate,
       totalFirstSessions,
       totalSuccessful,
@@ -153,7 +164,12 @@ export async function GET(request: Request) {
         (a, b) => b.successRate - a.successRate
       ),
       timestamp: new Date().toISOString()
-    });
+    };
+
+    // Cache the result (15 minute TTL)
+    await setCache(cacheKey, responseData, CACHE_TTL.CUSTOMERS);
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error('Error fetching success tracking data:', error);
     return NextResponse.json(

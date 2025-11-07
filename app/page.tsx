@@ -1,97 +1,191 @@
+'use client';
+
 import Link from "next/link";
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl loading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12 drop-in-1">
-          <h1 className="text-5xl font-bold mb-4 text-accent">
-            PulseMax Analytics
-          </h1>
-          <p className="text-xl text-secondary">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Sign Out */}
+        <div className="flex justify-between items-center mb-8 drop-in-1">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ color: 'var(--accent)' }}>
+              PulseMax Analytics
+            </h1>
+            <p className="text-lg md:text-xl" style={{ color: 'var(--text-secondary)' }}>
+              Welcome back, {session.user?.name || session.user?.email}
+            </p>
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+            className="px-4 py-2 rounded-lg border transition-colors"
+            style={{
+              borderColor: 'var(--border-color)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            Sign Out
+          </button>
+        </div>
+
+        <div className="text-center mb-12 drop-in-2">
+          <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
             Real-time marketplace health monitoring and customer success tracking
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <Link
             href="/dashboard"
-            className="card-hover rounded-lg p-8 border drop-in-2 bg-card border-default"
+            className="card-hover rounded-lg p-6 border drop-in-3"
             style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-color)',
               borderTopWidth: '4px',
               borderTopColor: 'var(--accent)'
             }}
           >
-            <h2 className="text-2xl font-semibold mb-3">
+            <h2 className="text-xl font-semibold mb-2">
               Marketplace Health
             </h2>
-            <p className="mb-4 text-secondary">
-              Monitor active sessions, tutor utilization, customer satisfaction, and supply/demand balance in real-time.
+            <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Real-time sessions, utilization, and satisfaction metrics
             </p>
-            <div className="font-medium text-accent">
+            <div className="font-medium" style={{ color: 'var(--accent)' }}>
               View Dashboard →
             </div>
           </Link>
 
           <Link
             href="/success-tracking"
-            className="card-hover rounded-lg p-8 border drop-in-3 bg-card border-default"
+            className="card-hover rounded-lg p-6 border drop-in-4"
             style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-color)',
               borderTopWidth: '4px',
-              borderTopColor: 'var(--success)'
+              borderTopColor: 'var(--accent)'
             }}
           >
-            <h2 className="text-2xl font-semibold mb-3">
+            <h2 className="text-xl font-semibold mb-2">
               Success Tracking
             </h2>
-            <p className="mb-4 text-secondary">
-              Track first session success rates by tutor, subject, and customer segment with anomaly detection.
+            <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              First session success rates with anomaly detection
             </p>
-            <div className="font-medium text-success">
-              View Dashboard →
-            </div>
-          </Link>
-
-          <Link
-            href="/velocity-monitoring"
-            className="card-hover rounded-lg p-8 border drop-in-4 bg-card border-default"
-            style={{
-              borderTopWidth: '4px',
-              borderTopColor: 'var(--info)'
-            }}
-          >
-            <h2 className="text-2xl font-semibold mb-3">
-              Velocity Monitoring
-            </h2>
-            <p className="mb-4 text-secondary">
-              Analyze session velocity by cohort, retention curves, and identify at-risk customers.
-            </p>
-            <div className="font-medium" style={{ color: 'var(--info)' }}>
+            <div className="font-medium" style={{ color: 'var(--accent)' }}>
               View Dashboard →
             </div>
           </Link>
 
           <Link
             href="/supply-demand"
-            className="card-hover rounded-lg p-8 border drop-in-5 bg-card border-default"
+            className="card-hover rounded-lg p-6 border drop-in-5"
             style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-color)',
               borderTopWidth: '4px',
-              borderTopColor: 'var(--warning)'
+              borderTopColor: 'var(--accent)'
             }}
           >
-            <h2 className="text-2xl font-semibold mb-3">
-              Supply-Demand Predictions
+            <h2 className="text-xl font-semibold mb-2">
+              Supply-Demand
             </h2>
-            <p className="mb-4 text-secondary">
-              AI-powered forecasting for supply-demand imbalances with proactive alerts.
+            <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              AI-powered forecasting with proactive alerts
             </p>
-            <div className="font-medium" style={{ color: 'var(--warning)' }}>
+            <div className="font-medium" style={{ color: 'var(--accent)' }}>
+              View Dashboard →
+            </div>
+          </Link>
+
+          <Link
+            href="/churn-prediction"
+            className="card-hover rounded-lg p-6 border drop-in-6"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-color)',
+              borderTopWidth: '4px',
+              borderTopColor: 'var(--accent)'
+            }}
+          >
+            <h2 className="text-xl font-semibold mb-2">
+              Churn Prediction
+            </h2>
+            <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Identify at-risk customers and prevent churn
+            </p>
+            <div className="font-medium" style={{ color: 'var(--accent)' }}>
+              View Dashboard →
+            </div>
+          </Link>
+
+          <Link
+            href="/campaign-recommendations"
+            className="card-hover rounded-lg p-6 border drop-in-7"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-color)',
+              borderTopWidth: '4px',
+              borderTopColor: 'var(--accent)'
+            }}
+          >
+            <h2 className="text-xl font-semibold mb-2">
+              Campaign Recommendations
+            </h2>
+            <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              AI-powered customer engagement strategies
+            </p>
+            <div className="font-medium" style={{ color: 'var(--accent)' }}>
+              View Dashboard →
+            </div>
+          </Link>
+
+          <Link
+            href="/alert-history"
+            className="card-hover rounded-lg p-6 border drop-in-8"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-color)',
+              borderTopWidth: '4px',
+              borderTopColor: 'var(--accent)'
+            }}
+          >
+            <h2 className="text-xl font-semibold mb-2">
+              Alert History
+            </h2>
+            <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              View and manage system alerts and notifications
+            </p>
+            <div className="font-medium" style={{ color: 'var(--accent)' }}>
               View Dashboard →
             </div>
           </Link>
         </div>
 
-        <div className="rounded-lg p-8 border card-hover drop-in-6 bg-card border-default">
+        <div className="rounded-lg p-8 border card-hover drop-in-11 bg-card border-default">
           <h3 className="text-2xl font-semibold mb-6">
             Features
           </h3>
