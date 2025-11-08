@@ -23,7 +23,8 @@
       "Bash(vercel --prod)",
       "Bash(vercel logs:*)",
       "Bash(vercel env ls:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(vercel inspect:*)"
     ],
     "deny": [],
     "ask": []

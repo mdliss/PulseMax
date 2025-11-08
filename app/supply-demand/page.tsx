@@ -269,19 +269,27 @@ export default function SupplyDemandPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(13, 148, 136, 0.1)', borderLeft: '4px solid #0d9488' }}>
               <p className="font-semibold" style={{ color: '#0d9488' }}>Critical</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{alertData.summary.criticalCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={alertData.summary.criticalCount} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(20, 184, 166, 0.1)', borderLeft: '4px solid #14b8a6' }}>
               <p className="font-semibold" style={{ color: '#14b8a6' }}>High</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{alertData.summary.highCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={alertData.summary.highCount} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(45, 212, 191, 0.1)', borderLeft: '4px solid #2dd4bf' }}>
               <p className="font-semibold" style={{ color: '#2dd4bf' }}>Medium</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{alertData.summary.mediumCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={alertData.summary.mediumCount} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(94, 234, 212, 0.1)', borderLeft: '4px solid #5eead4' }}>
               <p className="font-semibold" style={{ color: '#5eead4' }}>Low</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{alertData.summary.lowCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={alertData.summary.lowCount} />
+              </p>
             </div>
           </div>
 

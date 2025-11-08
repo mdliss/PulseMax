@@ -220,41 +220,53 @@ export default function SuccessTrackingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(13, 148, 136, 0.1)', borderLeft: '4px solid #0d9488' }}>
               <p className="font-semibold" style={{ color: '#0d9488' }}>Critical</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{anomalyData.criticalCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={anomalyData.criticalCount} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(20, 184, 166, 0.1)', borderLeft: '4px solid #14b8a6' }}>
               <p className="font-semibold" style={{ color: '#14b8a6' }}>High</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{anomalyData.highCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={anomalyData.highCount} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(45, 212, 191, 0.1)', borderLeft: '4px solid #2dd4bf' }}>
               <p className="font-semibold" style={{ color: '#2dd4bf' }}>Medium</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{anomalyData.mediumCount}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={anomalyData.mediumCount} />
+              </p>
             </div>
           </div>
 
           <div style={{ height: '300px', overflowY: 'auto' }}>
             {anomalyData.totalAnomalies > 0 ? (
               <div className="space-y-3">
-                {anomalyData.anomalies.map((anomaly, index) => (
-                  <div
-                    key={index}
-                    className="p-4 rounded-lg"
-                    style={getSeverityColor(anomaly.severity)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <p className="font-semibold mb-1">{anomaly.message}</p>
-                        <p className="text-sm opacity-90">
-                          Current: {anomaly.currentValue.toFixed(1)}% |
-                          Baseline: {anomaly.baselineValue.toFixed(1)}%
-                        </p>
+                {anomalyData.anomalies.map((anomaly, index) => {
+                  const severityStyle = getSeverityColor(anomaly.severity);
+                  return (
+                    <div
+                      key={index}
+                      className="p-4 rounded-lg"
+                      style={{
+                        ...severityStyle,
+                        animation: `slideDown 0.4s ease-out ${index * 0.05}s both`,
+                      }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-semibold mb-1">{anomaly.message}</p>
+                          <p className="text-sm opacity-90">
+                            Current: {anomaly.currentValue.toFixed(1)}% |
+                            Baseline: {anomaly.baselineValue.toFixed(1)}%
+                          </p>
+                        </div>
+                        <span className="text-xs opacity-75 ml-4">
+                          {new Date(anomaly.detectedAt).toLocaleTimeString()}
+                        </span>
                       </div>
-                      <span className="text-xs opacity-75 ml-4">
-                        {new Date(anomaly.detectedAt).toLocaleTimeString()}
-                      </span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
@@ -268,6 +280,18 @@ export default function SuccessTrackingPage() {
               </div>
             )}
           </div>
+          <style jsx>{`
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
         </div>
 
         {/* Success Rates by Tutor and Subject */}

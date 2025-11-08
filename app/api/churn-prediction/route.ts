@@ -245,6 +245,46 @@ function generateMockPredictions(limit: number) {
     });
   }
 
+  // Calculate dynamic feature importance based on predictions
+  const avgChurnProb = mockPredictions.reduce((sum, p) => sum + p.churnProbability, 0) / mockPredictions.length;
+  const highRiskCount = mockPredictions.filter(p => p.churnRisk === 'critical' || p.churnRisk === 'high').length;
+  const highRiskRatio = highRiskCount / mockPredictions.length;
+
+  // Base importance values with dynamic variance - add independent variance for each feature
+  const baseImportance = {
+    averageRating: 0.58,
+    sessionVelocity: 0.48,
+    ibCallFrequency: 0.15,
+    daysSinceLastSession: 0.05,
+    firstSessionSuccessRate: 0.03,
+  };
+
+  // Add independent variance for each feature to make bars move independently (±25% for more visible movement)
+  const riskInfluence = (highRiskRatio - 0.25) * 0.15; // Adjust based on high-risk percentage
+
+  const dynamicFeatureImportance = [
+    {
+      feature: 'averageRating',
+      importance: Math.max(0.35, Math.min(0.75, baseImportance.averageRating + (Math.random() - 0.5) * 0.25 + riskInfluence))
+    },
+    {
+      feature: 'sessionVelocity',
+      importance: Math.max(0.30, Math.min(0.70, baseImportance.sessionVelocity + (Math.random() - 0.5) * 0.30 + riskInfluence * 0.5))
+    },
+    {
+      feature: 'ibCallFrequency',
+      importance: Math.max(0.05, Math.min(0.30, baseImportance.ibCallFrequency + (Math.random() - 0.5) * 0.20))
+    },
+    {
+      feature: 'daysSinceLastSession',
+      importance: Math.max(0.01, Math.min(0.15, baseImportance.daysSinceLastSession + (Math.random() - 0.5) * 0.12 - riskInfluence * 0.2))
+    },
+    {
+      feature: 'firstSessionSuccessRate',
+      importance: Math.max(0.005, Math.min(0.12, baseImportance.firstSessionSuccessRate + (Math.random() - 0.5) * 0.10))
+    },
+  ].sort((a, b) => b.importance - a.importance);
+
   return {
     predictions: mockPredictions.sort((a, b) => b.churnProbability - a.churnProbability),
     summary: {
@@ -255,10 +295,10 @@ function generateMockPredictions(limit: number) {
         medium: mockPredictions.filter(p => p.churnRisk === 'medium').length,
         low: mockPredictions.filter(p => p.churnRisk === 'low').length,
       },
-      averageChurnProbability: mockPredictions.reduce((sum, p) => sum + p.churnProbability, 0) / mockPredictions.length,
-      highRiskCount: mockPredictions.filter(p => p.churnRisk === 'critical' || p.churnRisk === 'high').length,
+      averageChurnProbability: avgChurnProb,
+      highRiskCount,
     },
-    featureImportance: churnPredictor.getFeatureImportance(),
+    featureImportance: dynamicFeatureImportance,
     modelInfo: {
       type: 'Logistic Regression',
       features: [

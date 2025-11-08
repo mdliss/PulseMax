@@ -271,10 +271,11 @@ export default function ChurnPredictionPage() {
                   </div>
                   <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--background)' }}>
                     <div
-                      className="h-full transition-all duration-500"
+                      className="h-full"
                       style={{
                         width: `${percentage}%`,
                         backgroundColor: '#14b8a6',
+                        transition: 'width 1200ms ease-in-out',
                       }}
                     />
                   </div>
@@ -297,19 +298,27 @@ export default function ChurnPredictionPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(13, 148, 136, 0.1)', borderLeft: '4px solid #0d9488' }}>
               <p className="font-semibold" style={{ color: '#0d9488' }}>Critical</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{data.summary.byRisk.critical}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={data.summary.byRisk.critical} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(20, 184, 166, 0.1)', borderLeft: '4px solid #14b8a6' }}>
               <p className="font-semibold" style={{ color: '#14b8a6' }}>High</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{data.summary.byRisk.high}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={data.summary.byRisk.high} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(45, 212, 191, 0.1)', borderLeft: '4px solid #2dd4bf' }}>
               <p className="font-semibold" style={{ color: '#2dd4bf' }}>Medium</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{data.summary.byRisk.medium}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={data.summary.byRisk.medium} />
+              </p>
             </div>
             <div className="text-center p-4 rounded" style={{ backgroundColor: 'rgba(94, 234, 212, 0.1)', borderLeft: '4px solid #5eead4' }}>
               <p className="font-semibold" style={{ color: '#5eead4' }}>Low</p>
-              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{data.summary.byRisk.low}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                <AnimatedCounter value={data.summary.byRisk.low} />
+              </p>
             </div>
           </div>
 
