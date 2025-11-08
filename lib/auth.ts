@@ -11,8 +11,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        // TODO: Replace with actual database lookup
-        // For now, using demo credentials
+        // Single admin account
         if (
           credentials?.email === 'admin@pulsemax.com' &&
           credentials?.password === 'admin123'
@@ -22,18 +21,6 @@ export const authOptions: NextAuthOptions = {
             name: 'Admin User',
             email: 'admin@pulsemax.com',
             role: 'admin'
-          };
-        }
-
-        if (
-          credentials?.email === 'manager@pulsemax.com' &&
-          credentials?.password === 'manager123'
-        ) {
-          return {
-            id: '2',
-            name: 'Manager User',
-            email: 'manager@pulsemax.com',
-            role: 'manager'
           };
         }
 

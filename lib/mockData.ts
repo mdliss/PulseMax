@@ -157,7 +157,7 @@ export function generateMockSupplyDemandPredictions() {
 
 export function generateMockSupplyDemandAlerts() {
   const now = new Date();
-  const alerts = [];
+  const alerts: any[] = [];
   const predictions = generateMockSupplyDemandPredictions().predictions;
 
   // Generate alerts from high-risk predictions

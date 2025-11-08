@@ -1,54 +1,19 @@
 'use client';
 
 import Link from "next/link";
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-    }
-  }, [status, router]);
-
-  if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header with Sign Out */}
-        <div className="flex justify-between items-center mb-8 drop-in-1">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ color: 'var(--accent)' }}>
-              PulseMax Analytics
-            </h1>
-            <p className="text-lg md:text-xl" style={{ color: 'var(--text-secondary)' }}>
-              Welcome back, {session.user?.name || session.user?.email}
-            </p>
-          </div>
-          <button
-            onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-            className="px-4 py-2 rounded-lg border transition-colors"
-            style={{
-              borderColor: 'var(--border-color)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            Sign Out
-          </button>
+        {/* Header */}
+        <div className="mb-8 drop-in-1">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ color: 'var(--accent)' }}>
+            PulseMax Analytics
+          </h1>
+          <p className="text-lg md:text-xl" style={{ color: 'var(--text-secondary)' }}>
+            Welcome back
+          </p>
         </div>
 
         <div className="text-center mb-12 drop-in-2">

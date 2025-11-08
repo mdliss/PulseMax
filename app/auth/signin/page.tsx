@@ -74,13 +74,9 @@ function SignInContent() {
             <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">
               Demo Credentials:
             </p>
-            <div className="text-xs text-blue-700 dark:text-blue-400 space-y-1">
-              <div>
-                <strong>Admin:</strong> admin@pulsemax.com / admin123
-              </div>
-              <div>
-                <strong>Manager:</strong> manager@pulsemax.com / manager123
-              </div>
+            <div className="text-xs text-blue-700 dark:text-blue-400">
+              <strong>Email:</strong> admin@pulsemax.com<br />
+              <strong>Password:</strong> admin123
             </div>
           </div>
 
