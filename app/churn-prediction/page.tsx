@@ -305,16 +305,18 @@ export default function ChurnPredictionPage() {
                 {filteredPredictions.map((prediction, index) => (
                   <div
                     key={prediction.customerId}
-                    className="p-4 rounded transition-all"
+                    className="p-4 rounded transition-all duration-500 ease-in-out"
                     style={{
                       backgroundColor: getRiskColor(prediction.churnRisk),
-                      color: 'white'
+                      color: 'white',
+                      opacity: 1,
+                      transform: 'translateY(0)',
                     }}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold uppercase tracking-wide">
+                          <span className="text-xs font-semibold uppercase tracking-wide transition-all duration-300">
                             {prediction.churnRisk}:
                           </span>
                           <span className="font-medium">{prediction.customerId}</span>
@@ -322,7 +324,7 @@ export default function ChurnPredictionPage() {
                             {prediction.customerSegment}
                           </span>
                         </div>
-                        <div className="text-sm opacity-90">
+                        <div className="text-sm opacity-90 transition-all duration-300">
                           Churn Probability: {(prediction.churnProbability * 100).toFixed(1)}% | Model Confidence: {(prediction.confidence * 100).toFixed(0)}%
                         </div>
                       </div>
@@ -331,12 +333,58 @@ export default function ChurnPredictionPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex flex-col items-center justify-center h-full transition-opacity duration-300">
                 <p className="text-lg font-medium" style={{ color: 'var(--success)' }}>
                   No customers at {riskFilter} risk level
                 </p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Understanding Churn Indicators */}
+        <div className="rounded-lg p-4 md:p-6 border mb-6 md:mb-8 drop-in-6" style={{
+          backgroundColor: 'var(--card-bg)',
+          borderColor: 'var(--border-color)',
+          borderLeft: '4px solid #14b8a6'
+        }}>
+          <h2 className="text-lg md:text-xl font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
+            Understanding the Churn Indicators
+          </h2>
+          <div className="space-y-4" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-sm md:text-base">
+              The <strong style={{ color: 'var(--foreground)' }}>Top Churn Indicators</strong> section shows the relative importance of each factor in our prediction model.
+              These values represent how much weight each metric carries when calculating churn risk.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="p-3 rounded" style={{ backgroundColor: 'var(--background)' }}>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: '#14b8a6' }}>What the Numbers Mean</h3>
+                <ul className="text-sm space-y-1 list-disc list-inside">
+                  <li>Higher values = stronger impact on churn prediction</li>
+                  <li>These are model coefficients, not customer averages</li>
+                  <li>Values are static and don't change with new data</li>
+                </ul>
+              </div>
+
+              <div className="p-3 rounded" style={{ backgroundColor: 'var(--background)' }}>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: '#14b8a6' }}>How to Use This Information</h3>
+                <ul className="text-sm space-y-1 list-disc list-inside">
+                  <li>Focus on improving the top-weighted metrics</li>
+                  <li>Average Rating & Session Velocity are most critical</li>
+                  <li>Monitor these metrics closely for at-risk customers</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 rounded" style={{ backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
+              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Example Interpretation</h3>
+              <p className="text-sm">
+                <strong style={{ color: 'var(--foreground)' }}>Average Rating (0.58)</strong> has the highest weight, meaning customer satisfaction
+                ratings have the strongest influence on whether someone will churn. A customer with low ratings is significantly more likely to cancel
+                their subscription than someone with high ratings, all else being equal.
+              </p>
+            </div>
           </div>
         </div>
       </div>

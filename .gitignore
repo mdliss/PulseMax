@@ -32,6 +32,14 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
+.env.production
+.env.development
+
+# deployment docs with credentials
+DEPLOYMENT.local.txt
+credentials.txt
+secrets.txt
 
 # vercel
 .vercel
