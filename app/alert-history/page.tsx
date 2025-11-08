@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSSE } from '@/lib/hooks/useSSE';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 interface Alert {
@@ -56,23 +55,40 @@ export default function AlertHistoryPage() {
   const [actionFeedback, setActionFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [processingAction, setProcessingAction] = useState<string | null>(null);
 
-  // Use SSE for real-time updates
-  const { data, isConnected, error: sseError } = useSSE<AlertData>(
-    '/api/sse/alerts?interval=5000',
-    {
-      enabled: true,
-      onOpen: () => console.log('[Client] SSE connected to alerts'),
-      onError: (err) => console.error('[Client] SSE error:', err),
-    }
-  );
+  // Data state
+  const [data, setData] = useState<AlertData | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Update timestamp when new data arrives
+  // Use polling for real-time updates (works on Vercel Free)
   useEffect(() => {
-    if (data) {
-      console.log('[Client] Received alert SSE data update');
-      setLastUpdate(new Date().toLocaleTimeString());
-    }
-  }, [data]);
+    console.log('Using mock data mode');
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/alerts');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const fetchedData = await response.json();
+
+        setData(fetchedData);
+        setIsConnected(true);
+        setError(null);
+        setLastUpdate(new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setIsConnected(false);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Poll every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAction = async (alertId: string, action: 'acknowledge' | 'resolve') => {
     try {
@@ -155,15 +171,15 @@ export default function AlertHistoryPage() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Connecting to real-time data...</div>
+        <div className="text-xl loading">Loading data...</div>
       </div>
     );
   }
 
-  if (sseError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {sseError}</div>
+        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {error}</div>
       </div>
     );
   }

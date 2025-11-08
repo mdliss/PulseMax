@@ -38,7 +38,36 @@ export async function GET(request: Request) {
 
     // Use mock data if Firebase is not configured
     if (!isFirebaseConfigured || !db) {
-      const mockData = generateMockSuccessTracking();
+      const successData = generateMockSuccessTracking();
+
+      // Generate anomaly data based on success rates
+      const anomalies: any[] = [];
+      successData.byTutorAndSubject.forEach(rate => {
+        if (rate.successRate < 50 && rate.totalSessions >= 5) {
+          anomalies.push({
+            type: 'low_performance',
+            severity: rate.successRate < 30 ? 'critical' : rate.successRate < 40 ? 'high' : 'medium',
+            tutorName: rate.tutorName,
+            subject: rate.subject,
+            currentValue: rate.successRate,
+            baselineValue: 70,
+            message: `${rate.tutorName} success rate dropped in ${rate.subject}: ${rate.successRate.toFixed(1)}%`,
+            detectedAt: new Date().toISOString()
+          });
+        }
+      });
+
+      const mockData = {
+        successData,
+        anomalyData: {
+          anomalies,
+          totalAnomalies: anomalies.length,
+          criticalCount: anomalies.filter(a => a.severity === 'critical').length,
+          highCount: anomalies.filter(a => a.severity === 'high').length,
+          mediumCount: anomalies.filter(a => a.severity === 'medium').length,
+          timestamp: new Date().toISOString()
+        }
+      };
       // Cache mock data (shorter TTL)
       await setCache(cacheKey, mockData, CACHE_TTL.METRICS);
       return NextResponse.json(mockData);
@@ -153,7 +182,7 @@ export async function GET(request: Request) {
       ? parseFloat(((totalSuccessful / totalFirstSessions) * 100).toFixed(2))
       : 0;
 
-    const responseData = {
+    const successData = {
       overallSuccessRate,
       totalFirstSessions,
       totalSuccessful,
@@ -164,6 +193,37 @@ export async function GET(request: Request) {
         (a, b) => b.successRate - a.successRate
       ),
       timestamp: new Date().toISOString()
+    };
+
+    // Simple anomaly detection
+    const anomalies: any[] = [];
+    successRatesByTutorSubject.forEach(rate => {
+      if (rate.successRate < 50 && rate.totalSessions >= 5) {
+        anomalies.push({
+          type: 'low_performance',
+          severity: rate.successRate < 30 ? 'critical' : 'high',
+          tutorName: rate.tutorName,
+          subject: rate.subject,
+          currentValue: rate.successRate,
+          baselineValue: 70,
+          message: `Low success rate for ${rate.tutorName} in ${rate.subject}: ${rate.successRate.toFixed(1)}%`,
+          detectedAt: new Date().toISOString()
+        });
+      }
+    });
+
+    const anomalyData = {
+      anomalies,
+      totalAnomalies: anomalies.length,
+      criticalCount: anomalies.filter(a => a.severity === 'critical').length,
+      highCount: anomalies.filter(a => a.severity === 'high').length,
+      mediumCount: anomalies.filter(a => a.severity === 'medium').length,
+      timestamp: new Date().toISOString()
+    };
+
+    const responseData = {
+      successData,
+      anomalyData
     };
 
     // Cache the result (15 minute TTL)

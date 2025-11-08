@@ -13,7 +13,6 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import { useSSE } from '@/lib/hooks/useSSE';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 interface SuccessRate {
@@ -69,45 +68,52 @@ interface CombinedSSEData {
 
 export default function SuccessTrackingPage() {
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [combinedData, setCombinedData] = useState<CombinedSSEData | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use SSE for real-time updates
-  const { data: combinedData, isConnected, error: sseError } = useSSE<CombinedSSEData>(
-    '/api/sse/success-tracking?interval=5000',
-    {
-      enabled: true,
-      onOpen: () => {
-        console.log('[Client] SSE connected to success tracking');
-      },
-      onError: (err) => {
-        console.error('[Client] SSE error:', err);
-      },
-    }
-  );
-
-  // Update timestamp when new data arrives
+  // Use polling for real-time updates (works on Vercel Free)
   useEffect(() => {
-    if (combinedData) {
-      console.log('[Client] Received SSE data update:', {
-        overallRate: combinedData.successData?.overallSuccessRate,
-        totalSessions: combinedData.successData?.totalFirstSessions,
-        anomalies: combinedData.anomalyData?.totalAnomalies,
-      });
-      setLastUpdate(new Date().toLocaleTimeString());
-    }
-  }, [combinedData]);
+    console.log('Using mock data mode');
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/success-tracking');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const data = await response.json();
+
+        setCombinedData(data);
+        setIsConnected(true);
+        setError(null);
+        setLastUpdate(new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setIsConnected(false);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Poll every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!combinedData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Connecting to real-time data...</div>
+        <div className="text-xl loading">Loading data...</div>
       </div>
     );
   }
 
-  if (sseError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {sseError}</div>
+        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {error}</div>
       </div>
     );
   }

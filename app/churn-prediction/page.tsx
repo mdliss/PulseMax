@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSSE } from '@/lib/hooks/useSSE';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 interface RiskFactor {
@@ -41,37 +40,52 @@ export default function ChurnPredictionPage() {
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [selectedCustomer, setSelectedCustomer] = useState<ChurnPrediction | null>(null);
+  const [data, setData] = useState<ChurnData | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use SSE for real-time updates
-  const { data, isConnected, error: sseError } = useSSE<ChurnData>(
-    '/api/sse/churn-prediction?interval=5000',
-    {
-      enabled: true,
-      onOpen: () => console.log('[Client] SSE connected to churn prediction'),
-      onError: (err) => console.error('[Client] SSE error:', err),
-    }
-  );
-
-  // Update timestamp when new data arrives
+  // Use polling for real-time updates (works on Vercel Free)
   useEffect(() => {
-    if (data) {
-      console.log('[Client] Received churn SSE data update');
-      setLastUpdate(new Date().toLocaleTimeString());
-    }
-  }, [data]);
+    console.log('Using mock data mode');
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/churn-prediction');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const fetchedData = await response.json();
+
+        setData(fetchedData);
+        setIsConnected(true);
+        setError(null);
+        setLastUpdate(new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setIsConnected(false);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Poll every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Connecting to real-time data...</div>
+        <div className="text-xl loading">Loading data...</div>
       </div>
     );
   }
 
-  if (sseError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {sseError}</div>
+        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {error}</div>
       </div>
     );
   }

@@ -15,7 +15,6 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { useSSE } from '@/lib/hooks/useSSE';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 interface Prediction {
@@ -78,44 +77,52 @@ interface CombinedSSEData {
 
 export default function SupplyDemandPage() {
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [combinedData, setCombinedData] = useState<CombinedSSEData | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use SSE for real-time updates
-  const { data: combinedData, isConnected, error: sseError } = useSSE<CombinedSSEData>(
-    '/api/sse/supply-demand?interval=5000',
-    {
-      enabled: true,
-      onOpen: () => {
-        console.log('[Client] SSE connected to supply-demand');
-      },
-      onError: (err) => {
-        console.error('[Client] SSE error:', err);
-      },
-    }
-  );
-
-  // Update timestamp when new data arrives
+  // Use polling for real-time updates (works on Vercel Free)
   useEffect(() => {
-    if (combinedData) {
-      console.log('[Client] Received SSE data update:', {
-        predictions: combinedData.predictionData?.summary?.totalPredictions,
-        alerts: combinedData.alertData?.summary?.totalAlerts,
-      });
-      setLastUpdate(new Date().toLocaleTimeString());
-    }
-  }, [combinedData]);
+    console.log('Using mock data mode');
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/supply-demand');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const data = await response.json();
+
+        setCombinedData(data);
+        setIsConnected(true);
+        setError(null);
+        setLastUpdate(new Date().toLocaleTimeString());
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setIsConnected(false);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Poll every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!combinedData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Connecting to real-time data...</div>
+        <div className="text-xl loading">Loading data...</div>
       </div>
     );
   }
 
-  if (sseError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {sseError}</div>
+        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {error}</div>
       </div>
     );
   }

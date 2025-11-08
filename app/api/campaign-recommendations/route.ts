@@ -17,16 +17,37 @@ export async function GET(request: Request) {
     const hoursParam = searchParams.get('hours');
     const hours = hoursParam ? parseInt(hoursParam) : 24;
 
-    // Fetch supply-demand predictions
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const predictionsResponse = await fetch(`${baseUrl}/api/supply-demand/predict?hours=${hours}`);
+    // Generate mock predictions for campaign recommendations
+    const predictions: SupplyDemandPrediction[] = Array.from({ length: hours }, (_, i) => {
+      const timestamp = new Date(Date.now() + i * 60 * 60 * 1000);
+      const hour = timestamp.getHours();
+      const dayOfWeek = timestamp.getDay();
 
-    if (!predictionsResponse.ok) {
-      throw new Error('Failed to fetch supply-demand predictions');
-    }
+      const baseVolume = 30 + Math.sin(hour / 24 * Math.PI * 2) * 15;
+      const baseTutors = 25 + Math.sin((hour + 3) / 24 * Math.PI * 2) * 10;
+      const variance = (Math.random() - 0.5) * 10;
 
-    const predictionsData = await predictionsResponse.json();
-    const predictions: SupplyDemandPrediction[] = predictionsData.predictions;
+      const sessionVolume = Math.max(5, Math.floor(baseVolume + variance));
+      const availableTutors = Math.max(5, Math.floor(baseTutors + variance));
+      const ratio = sessionVolume / availableTutors;
+
+      let risk: 'low' | 'medium' | 'high' | 'critical';
+      if (ratio > 1.5) risk = 'critical';
+      else if (ratio > 1.2) risk = 'high';
+      else if (ratio > 0.9) risk = 'medium';
+      else risk = 'low';
+
+      return {
+        timestamp: timestamp.toISOString(),
+        hour,
+        dayOfWeek,
+        predictedSessionVolume: sessionVolume,
+        predictedAvailableTutors: availableTutors,
+        predictedSupplyDemandRatio: Number(ratio.toFixed(2)),
+        confidence: 0.75 + Math.random() * 0.2,
+        imbalanceRisk: risk
+      };
+    });
 
     // Generate recommendations using the engine
     const recommendations = campaignRecommendationEngine.generateRecommendations(predictions);
@@ -71,18 +92,18 @@ function generateInsights(recommendations: any[], predictions: SupplyDemandPredi
 
   // Critical insights
   if (criticalHours > 0) {
-    insights.push(`🚨 ${criticalHours} hour(s) with critical supply shortage detected in the next ${predictions.length} hours`);
+    insights.push(`${criticalHours} hour(s) with critical supply shortage detected in the next ${predictions.length} hours`);
   }
 
   if (highRiskHours > 0) {
-    insights.push(`⚠️ ${highRiskHours} hour(s) with high imbalance risk require attention`);
+    insights.push(`${highRiskHours} hour(s) with high imbalance risk require attention`);
   }
 
   // Average ratio insights
   if (avgRatio > 1.2) {
-    insights.push('📊 Average supply-demand ratio is elevated - prioritize tutor recruitment');
+    insights.push('Average supply-demand ratio is elevated - prioritize tutor recruitment');
   } else if (avgRatio < 0.7) {
-    insights.push('📊 Excess tutor capacity detected - opportunity to increase student acquisition');
+    insights.push('Excess tutor capacity detected - opportunity to increase student acquisition');
   }
 
   // Recommendation type insights
@@ -90,11 +111,11 @@ function generateInsights(recommendations: any[], predictions: SupplyDemandPredi
   const budgetAdjustCount = recommendations.filter(r => r.type === 'budget_increase' || r.type === 'budget_decrease').length;
 
   if (tutorRecruitCount > 3) {
-    insights.push(`👥 ${tutorRecruitCount} tutor recruitment recommendations - consider systematic hiring campaign`);
+    insights.push(`${tutorRecruitCount} tutor recruitment recommendations - consider systematic hiring campaign`);
   }
 
   if (budgetAdjustCount > 2) {
-    insights.push(`💰 ${budgetAdjustCount} budget adjustments suggested - review campaign allocation`);
+    insights.push(`${budgetAdjustCount} budget adjustments suggested - review campaign allocation`);
   }
 
   // Time-of-day insights
@@ -111,7 +132,7 @@ function generateInsights(recommendations: any[], predictions: SupplyDemandPredi
   );
 
   if (peakHour[1] > 0) {
-    insights.push(`⏰ Peak imbalance occurs around ${peakHour[0]}:00 - focus tutor availability during this window`);
+    insights.push(`Peak imbalance occurs around ${peakHour[0]}:00 - focus tutor availability during this window`);
   }
 
   return insights;
