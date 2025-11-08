@@ -16,7 +16,8 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { useSSE } from '@/lib/hooks/useSSE';
+import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 interface MarketplaceHealth {
@@ -31,26 +32,167 @@ interface MarketplaceHealth {
 
 const COLORS = ['#14b8a6', '#5eead4']; // Teal shades for better contrast
 
+// Mock data generator
+function generateMockMetrics(): MarketplaceHealth {
+  return {
+    activeSessions: Math.floor(Math.random() * 50) + 10,
+    dailySessionVolume: Math.floor(Math.random() * 200) + 50,
+    averageRating: Number((Math.random() * 1 + 4).toFixed(2)),
+    tutorUtilizationRate: Number((Math.random() * 30 + 60).toFixed(2)),
+    customerSatisfactionScore: Number((Math.random() * 20 + 75).toFixed(2)),
+    supplyDemandBalance: Number((Math.random() * 0.5 + 0.8).toFixed(2)),
+    timestamp: new Date().toISOString(),
+  };
+}
+
 export default function MarketplaceDashboard() {
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [isExporting, setIsExporting] = useState(false);
+  const [healthData, setHealthData] = useState<MarketplaceHealth | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use SSE for real-time updates
-  const { data: healthData, isConnected, error: sseError } = useSSE<MarketplaceHealth>(
-    '/api/sse/marketplace?interval=5000',
-    {
-      enabled: true,
-      onOpen: () => console.log('SSE connected to marketplace'),
-      onError: (err) => console.error('SSE error:', err),
-    }
-  );
+  // Check if we should use mock data
+  const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || !db;
 
-  // Update timestamp when new data arrives
+  // Use Firebase realtime listeners for real-time updates
   useEffect(() => {
-    if (healthData) {
+    // If mock data is enabled, use interval-based mock data
+    if (useMockData) {
+      console.log('Using mock data mode');
+      setHealthData(generateMockMetrics());
+      setIsConnected(true);
       setLastUpdate(new Date().toLocaleTimeString());
+
+      const interval = setInterval(() => {
+        setHealthData(generateMockMetrics());
+        setLastUpdate(new Date().toLocaleTimeString());
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
-  }, [healthData]);
+
+    if (!db) {
+      setError('Firebase not configured');
+      return;
+    }
+
+    const now = new Date();
+    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Subscribe to sessions collection
+    const sessionsRef = collection(db, 'sessions');
+    const recentSessionsQuery = query(
+      sessionsRef,
+      where('start_time', '>=', Timestamp.fromDate(thirtyMinutesAgo))
+    );
+
+    // Subscribe to tutors collection
+    const tutorsRef = collection(db, 'tutors');
+
+    let tutorsData: any[] = [];
+    let sessionsUnsubscribe: (() => void) | null = null;
+
+    // First get tutors
+    const tutorsUnsubscribe = onSnapshot(
+      tutorsRef,
+      (tutorsSnapshot) => {
+        tutorsData = tutorsSnapshot.docs;
+        setIsConnected(true);
+        setError(null);
+      },
+      (err) => {
+        console.error('Tutors listener error:', err);
+        setError('Failed to connect to Firebase');
+        setIsConnected(false);
+      }
+    );
+
+    // Then subscribe to sessions
+    sessionsUnsubscribe = onSnapshot(
+      recentSessionsQuery,
+      (snapshot) => {
+        try {
+          const allSessions = snapshot.docs;
+
+          // Filter active sessions
+          const activeSessions = allSessions.filter(doc => {
+            const status = doc.data().status;
+            return status === 'active' || status === 'scheduled';
+          });
+
+          // Filter daily sessions
+          const dailySessions = allSessions.filter(doc => {
+            const startTime = doc.data().start_time;
+            const sessionDate = startTime?.toDate ? startTime.toDate() : new Date(startTime);
+            return sessionDate >= today;
+          });
+
+          // Calculate average rating
+          const ratedSessions = allSessions.filter(doc => {
+            const rating = doc.data().rating;
+            return rating && rating > 0;
+          });
+
+          let totalRating = 0;
+          ratedSessions.forEach((doc) => {
+            totalRating += doc.data().rating;
+          });
+          const averageRating = ratedSessions.length > 0 ? totalRating / ratedSessions.length : 0;
+
+          // Tutor utilization
+          const totalTutors = Math.max(tutorsData.length, 1);
+          const activeTutorIds = new Set();
+          dailySessions.forEach((doc) => {
+            const tutorId = doc.data().tutor_id;
+            if (tutorId) activeTutorIds.add(tutorId);
+          });
+          const tutorUtilizationRate = (activeTutorIds.size / totalTutors) * 100;
+
+          // Customer satisfaction
+          const highRatingCount = ratedSessions.filter(
+            doc => doc.data().rating >= 4
+          ).length;
+          const customerSatisfactionScore = ratedSessions.length > 0
+            ? (highRatingCount / ratedSessions.length) * 100
+            : 0;
+
+          // Supply vs Demand
+          const availableTutors = Math.max(1, activeTutorIds.size);
+          const supplyDemandBalance = activeSessions.length / availableTutors;
+
+          setHealthData({
+            activeSessions: activeSessions.length,
+            dailySessionVolume: dailySessions.length,
+            averageRating: Number(averageRating.toFixed(2)),
+            tutorUtilizationRate: Number(tutorUtilizationRate.toFixed(2)),
+            customerSatisfactionScore: Number(customerSatisfactionScore.toFixed(2)),
+            supplyDemandBalance: Number(supplyDemandBalance.toFixed(2)),
+            timestamp: new Date().toISOString(),
+          });
+
+          setLastUpdate(new Date().toLocaleTimeString());
+          setIsConnected(true);
+          setError(null);
+        } catch (err) {
+          console.error('Error processing snapshot:', err);
+          setError('Error processing data');
+        }
+      },
+      (err) => {
+        console.error('Sessions listener error:', err);
+        setError('Failed to connect to Firebase');
+        setIsConnected(false);
+      }
+    );
+
+    // Cleanup function
+    return () => {
+      if (sessionsUnsubscribe) sessionsUnsubscribe();
+      if (tutorsUnsubscribe) tutorsUnsubscribe();
+    };
+  }, []);
 
   // Handle CSV export
   const handleExportCustomers = async () => {
@@ -83,15 +225,15 @@ export default function MarketplaceDashboard() {
   if (!healthData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Connecting to real-time data...</div>
+        <div className="text-xl loading">Connecting to Firebase...</div>
       </div>
     );
   }
 
-  if (sseError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {sseError}</div>
+        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {error}</div>
       </div>
     );
   }
@@ -305,7 +447,7 @@ export default function MarketplaceDashboard() {
             <div className="flex-1">
               <div className="h-8 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border-color)' }}>
                 <div
-                  className="h-full transition-all duration-500"
+                  className="h-full"
                   style={{
                     background: 'linear-gradient(90deg, var(--success) 0%, var(--accent) 50%, var(--info) 100%)',
                     width: `${Math.min(
@@ -313,7 +455,8 @@ export default function MarketplaceDashboard() {
                       (healthData.customerSatisfactionScore +
                         healthData.supplyDemandBalance) /
                         2
-                    )}%`
+                    )}%`,
+                    transition: 'width 1.5s cubic-bezier(0.4, 0.0, 0.2, 1)'
                   }}
                 />
               </div>

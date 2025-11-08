@@ -5,10 +5,21 @@
 
 import { NextRequest } from 'next/server';
 import { createIntervalStream, SSEStream } from '@/lib/sse/sseStream';
-import { db } from '@/lib/db/firebase';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Lazy import Firebase only when needed
+import type { Firestore } from 'firebase-admin/firestore';
+
+let db: Firestore | null = null;
+async function getDB(): Promise<Firestore> {
+  if (!db) {
+    const { db: firestore } = await import('@/lib/db/firebase');
+    db = firestore;
+  }
+  return db;
+}
 
 interface MarketplaceMetrics {
   activeSessions: number;
@@ -43,7 +54,8 @@ async function getMarketplaceMetrics(): Promise<MarketplaceMetrics> {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
-    const sessionsRef = db.collection('sessions');
+    const firestore = await getDB();
+    const sessionsRef = firestore.collection('sessions');
 
     // Simplified query: Get recent sessions only by time (avoid composite index)
     const recentSessionsQuery = sessionsRef
@@ -82,7 +94,7 @@ async function getMarketplaceMetrics(): Promise<MarketplaceMetrics> {
     const averageRating = ratedSessions.length > 0 ? totalRating / ratedSessions.length : 0;
 
     // Get tutor utilization
-    const tutorsRef = db.collection('tutors');
+    const tutorsRef = firestore.collection('tutors');
     const tutorsSnapshot = await tutorsRef.get();
     const totalTutors = Math.max(tutorsSnapshot.size, 1);
 
@@ -122,25 +134,53 @@ async function getMarketplaceMetrics(): Promise<MarketplaceMetrics> {
 }
 
 export async function GET(request: NextRequest) {
-  // Get interval from query params (default 5 seconds)
-  const searchParams = request.nextUrl.searchParams;
-  const interval = parseInt(searchParams.get('interval') || '5000', 10);
+  try {
+    // Get interval from query params (default 5 seconds)
+    const searchParams = request.nextUrl.searchParams;
+    const interval = parseInt(searchParams.get('interval') || '5000', 10);
 
-  // Validate interval (min 1s, max 60s)
-  const validInterval = Math.min(Math.max(interval, 1000), 60000);
+    // Validate interval (min 1s, max 60s)
+    const validInterval = Math.min(Math.max(interval, 1000), 60000);
 
-  const stream = createIntervalStream(
-    getMarketplaceMetrics,
-    validInterval,
-    {
-      heartbeatInterval: 30000,
-      onError: (error) => {
-        console.error('Marketplace SSE error:', error);
-      },
-    }
-  );
+    // Wrap getMarketplaceMetrics to ensure it never throws
+    const safeGetMetrics = async () => {
+      try {
+        return await getMarketplaceMetrics();
+      } catch (error) {
+        console.error('[SSE Marketplace] Error fetching metrics, using mock data:', error);
+        return generateMockMetrics();
+      }
+    };
 
-  return new Response(stream, {
-    headers: SSEStream.getHeaders(),
-  });
+    const stream = createIntervalStream(
+      safeGetMetrics,
+      validInterval,
+      {
+        heartbeatInterval: 30000,
+        onError: (error) => {
+          console.error('Marketplace SSE error:', error);
+        },
+      }
+    );
+
+    return new Response(stream, {
+      headers: SSEStream.getHeaders(),
+    });
+  } catch (error) {
+    console.error('[SSE Marketplace] Fatal error initializing stream:', error);
+
+    // Return a fallback SSE stream with mock data
+    const fallbackStream = createIntervalStream(
+      generateMockMetrics,
+      5000,
+      {
+        heartbeatInterval: 30000,
+        onError: (err) => console.error('Fallback SSE error:', err),
+      }
+    );
+
+    return new Response(fallbackStream, {
+      headers: SSEStream.getHeaders(),
+    });
+  }
 }

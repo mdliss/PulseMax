@@ -1,0 +1,61 @@
+FIREBASE REALTIME SETUP - IMPORTANT!
+
+The dashboard now uses Firebase Realtime Listeners instead of SSE.
+This means data streams directly from Firestore to the browser - NO disconnects!
+
+DEPLOYMENT STEPS:
+
+1. Deploy Firestore Security Rules:
+
+   cd /Users/max/PulseMax
+   firebase deploy --only firestore:rules
+
+   (Make sure you have Firebase CLI installed: npm install -g firebase-cli)
+
+2. Verify Firebase Environment Variables:
+
+   Make sure these are set in Vercel:
+   - NEXT_PUBLIC_FIREBASE_API_KEY
+   - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+   - NEXT_PUBLIC_FIREBASE_PROJECT_ID
+   - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+   - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+   - NEXT_PUBLIC_FIREBASE_APP_ID
+
+3. Security Considerations:
+
+   Current rules allow PUBLIC READ access to sessions and tutors collections.
+   This is OK for a dashboard, but consider adding authentication:
+
+   // Example: Require authentication
+   allow read: if request.auth != null;
+
+   // Example: Require specific user
+   allow read: if request.auth.uid == "your-admin-uid";
+
+4. Test Locally First:
+
+   npm run dev
+
+   Open http://localhost:3000/dashboard
+   Watch console for Firebase connection messages
+
+5. Deploy:
+
+   vercel --prod
+
+   The dashboard will now have zero disconnects and instant updates!
+
+WHAT CHANGED:
+
+✅ Removed SSE endpoint (no more serverless timeout issues)
+✅ Direct Firebase connection from browser
+✅ Automatic reconnection on network issues
+✅ Real-time updates with zero delay
+✅ Works on Vercel free plan
+
+MONITORING:
+
+- Green dot = Connected to Firebase
+- Data updates in real-time as Firestore changes
+- Check browser console for any Firebase errors

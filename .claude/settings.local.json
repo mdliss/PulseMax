@@ -19,7 +19,10 @@
       "mcp__task-master-ai__update_subtask",
       "Bash(pkill:*)",
       "Bash(npm run populate-firebase:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(vercel --prod)",
+      "Bash(vercel logs:*)",
+      "Bash(vercel env ls:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Sessions collection - read-only for dashboard
+    match /sessions/{sessionId} {
+      // Allow read access to all users (for real-time dashboard)
+      // You may want to add authentication requirements here
+      allow read: if true;
+
+      // Only allow writes from server-side (admin SDK)
+      allow write: if false;
+    }
+
+    // Tutors collection - read-only for dashboard
+    match /tutors/{tutorId} {
+      // Allow read access to all users (for real-time dashboard)
+      // You may want to add authentication requirements here
+      allow read: if true;
+
+      // Only allow writes from server-side (admin SDK)
+      allow write: if false;
+    }
+
+    // Customers collection - no client access
+    match /customers/{customerId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
