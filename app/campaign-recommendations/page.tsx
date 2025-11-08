@@ -240,9 +240,9 @@ export default function CampaignRecommendationsPage() {
             </h2>
             <div className="space-y-2">
               {data.insights.map((insight, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <span style={{ color: '#14b8a6' }}>•</span>
-                  <p style={{ color: 'var(--foreground)' }}>{insight}</p>
+                <div key={index} className="flex items-start gap-2" style={{ minHeight: '28px' }}>
+                  <span style={{ color: '#14b8a6', flexShrink: 0 }}>•</span>
+                  <p className="text-sm md:text-base" style={{ color: 'var(--foreground)', lineHeight: '1.5' }}>{insight}</p>
                 </div>
               ))}
             </div>
@@ -283,10 +283,11 @@ export default function CampaignRecommendationsPage() {
                 {data.recommendations.map((rec, index) => (
                   <div
                     key={rec.id}
-                    className="p-4 rounded transition-all"
+                    className="p-4 rounded"
                     style={{
                       backgroundColor: getSeverityColor(rec.severity),
-                      color: 'white'
+                      color: 'white',
+                      animation: `slideDown 0.4s ease-out ${index * 0.05}s both`,
                     }}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -308,7 +309,7 @@ export default function CampaignRecommendationsPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex flex-col items-center justify-center h-full transition-opacity duration-300">
                 <p className="text-lg font-medium" style={{ color: 'var(--success)' }}>
                   No recommendations at this time
                 </p>
@@ -318,6 +319,18 @@ export default function CampaignRecommendationsPage() {
               </div>
             )}
           </div>
+          <style jsx>{`
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
         </div>
       </div>
     </div>

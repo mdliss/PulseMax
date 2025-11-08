@@ -293,10 +293,11 @@ export default function SupplyDemandPage() {
                   return (
                     <div
                       key={index}
-                      className="p-4 rounded transition-all"
+                      className="p-4 rounded"
                       style={{
                         backgroundColor: config.bg,
-                        color: 'white'
+                        color: 'white',
+                        animation: `slideDown 0.4s ease-out ${index * 0.05}s both`,
                       }}
                     >
                       <div className="flex items-start justify-between mb-2">
@@ -318,7 +319,7 @@ export default function SupplyDemandPage() {
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex flex-col items-center justify-center h-full transition-opacity duration-300">
                 <p className="text-lg font-medium" style={{ color: 'var(--success)' }}>
                   All Systems Balanced
                 </p>
@@ -328,6 +329,18 @@ export default function SupplyDemandPage() {
               </div>
             )}
           </div>
+          <style jsx>{`
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
         </div>
 
         {/* Prediction Charts */}

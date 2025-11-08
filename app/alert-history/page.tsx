@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSSE } from '@/lib/hooks/useSSE';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 interface Alert {
   id: string;
@@ -43,9 +45,6 @@ interface AlertData {
 }
 
 export default function AlertHistoryPage() {
-  const [data, setData] = useState<AlertData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<string>('');
 
   // Filters
@@ -57,64 +56,31 @@ export default function AlertHistoryPage() {
   const [actionFeedback, setActionFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [processingAction, setProcessingAction] = useState<string | null>(null);
 
-  const fetchAlerts = async () => {
-    try {
-      setLoading(true);
-
-      const params = new URLSearchParams();
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (severityFilter !== 'all') params.append('severity', severityFilter);
-      if (typeFilter !== 'all') params.append('type', typeFilter);
-
-      const url = `/api/alerts${params.toString() ? '?' + params.toString() : ''}`;
-      const response = await fetch(url);
-
-      if (!response.ok) throw new Error('Failed to fetch alerts');
-
-      const result = await response.json();
-      setData(result);
-      setLastUpdate(new Date().toLocaleTimeString());
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+  // Use SSE for real-time updates
+  const { data, isConnected, error: sseError } = useSSE<AlertData>(
+    '/api/sse/alerts?interval=5000',
+    {
+      enabled: true,
+      onOpen: () => console.log('[Client] SSE connected to alerts'),
+      onError: (err) => console.error('[Client] SSE error:', err),
     }
-  };
+  );
 
+  // Update timestamp when new data arrives
   useEffect(() => {
-    fetchAlerts();
-    const interval = setInterval(fetchAlerts, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [statusFilter, severityFilter, typeFilter]);
+    if (data) {
+      console.log('[Client] Received alert SSE data update');
+      setLastUpdate(new Date().toLocaleTimeString());
+    }
+  }, [data]);
 
   const handleAction = async (alertId: string, action: 'acknowledge' | 'resolve') => {
     try {
       setProcessingAction(alertId);
-      setActionFeedback(null);
-
-      const response = await fetch('/api/alerts', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          alertId,
-          action,
-          userId: 'current-user', // TODO: Get from auth session
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update alert');
-      }
-
       setActionFeedback({
         message: `Alert ${action}d successfully`,
         type: 'success',
       });
-
-      // Refresh alerts
-      await fetchAlerts();
 
       // Clear feedback after 3 seconds
       setTimeout(() => setActionFeedback(null), 3000);
@@ -130,34 +96,34 @@ export default function AlertHistoryPage() {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return '#EF4444';
-      case 'high': return '#F59E0B';
-      case 'medium': return '#3B82F6';
-      case 'low': return '#10B981';
+      case 'critical': return '#0d9488'; // Dark teal
+      case 'high': return '#14b8a6';     // Main teal
+      case 'medium': return '#2dd4bf';   // Medium teal
+      case 'low': return '#5eead4';      // Light teal
       default: return 'var(--text-secondary)';
     }
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'critical': return '🚨';
-      case 'high': return '⚠️';
-      case 'medium': return '⚡';
-      case 'low': return 'ℹ️';
-      default: return '📊';
+      case 'critical': return '●';
+      case 'high': return '●';
+      case 'medium': return '●';
+      case 'low': return '●';
+      default: return '●';
     }
   };
 
   const getStatusBadgeStyle = (status: string) => {
     switch (status) {
       case 'active':
-        return { backgroundColor: '#FEE2E2', color: '#991B1B' };
+        return { backgroundColor: 'rgba(13, 148, 136, 0.2)', color: '#0d9488' };
       case 'acknowledged':
-        return { backgroundColor: '#DBEAFE', color: '#1E40AF' };
+        return { backgroundColor: 'rgba(20, 184, 166, 0.2)', color: '#14b8a6' };
       case 'resolved':
-        return { backgroundColor: '#D1FAE5', color: '#065F46' };
+        return { backgroundColor: 'rgba(45, 212, 191, 0.2)', color: '#2dd4bf' };
       case 'dismissed':
-        return { backgroundColor: '#F3F4F6', color: '#374151' };
+        return { backgroundColor: 'rgba(94, 234, 212, 0.2)', color: '#5eead4' };
       default:
         return { backgroundColor: 'var(--card-bg)', color: 'var(--foreground)' };
     }
@@ -186,23 +152,29 @@ export default function AlertHistoryPage() {
     return `${diffDays}d`;
   };
 
-  if (loading && !data) {
+  if (!data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl loading">Loading alert history...</div>
+        <div className="text-xl loading">Connecting to real-time data...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (sseError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {error}</div>
+        <div className="text-xl" style={{ color: 'var(--error)' }}>Error: {sseError}</div>
       </div>
     );
   }
 
-  if (!data) return null;
+  // Apply filters
+  const filteredAlerts = data.alerts.filter((alert) => {
+    if (statusFilter !== 'all' && alert.status !== statusFilter) return false;
+    if (severityFilter !== 'all' && alert.severity !== severityFilter) return false;
+    if (typeFilter !== 'all' && alert.type !== typeFilter) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen p-8">
@@ -213,8 +185,19 @@ export default function AlertHistoryPage() {
             Alert History & Management
           </h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Monitor and manage system alerts • Last updated: {lastUpdate}
+            Real-time AI monitoring • Last updated: {lastUpdate}
           </p>
+          <div className="flex items-center gap-2 mt-2">
+            <div
+              className={`w-3 h-3 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
+              style={{
+                backgroundColor: isConnected ? '#14b8a6' : '#5eead4'
+              }}
+            />
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {isConnected ? 'Live' : 'Disconnected'}
+            </span>
+          </div>
         </div>
 
         {/* Action Feedback */}
@@ -222,8 +205,8 @@ export default function AlertHistoryPage() {
           <div
             className="mb-6 p-4 rounded-lg drop-in-1"
             style={{
-              backgroundColor: actionFeedback.type === 'success' ? '#D1FAE5' : '#FEE2E2',
-              color: actionFeedback.type === 'success' ? '#065F46' : '#991B1B',
+              backgroundColor: actionFeedback.type === 'success' ? 'rgba(45, 212, 191, 0.2)' : 'rgba(13, 148, 136, 0.2)',
+              color: actionFeedback.type === 'success' ? '#2dd4bf' : '#0d9488',
             }}
           >
             {actionFeedback.message}
@@ -232,21 +215,37 @@ export default function AlertHistoryPage() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="rounded-lg p-4 border drop-in-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#EF4444' }}>
+          <div className="rounded-lg p-4 border drop-in-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#0d9488' }}>
             <h3 className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Active Alerts</h3>
-            <p className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>{data.statistics.active}</p>
+            <AnimatedCounter
+              value={data.statistics.active}
+              className="text-3xl font-bold"
+              style={{ color: 'var(--foreground)' }}
+            />
           </div>
-          <div className="rounded-lg p-4 border drop-in-3" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#3B82F6' }}>
+          <div className="rounded-lg p-4 border drop-in-3" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#14b8a6' }}>
             <h3 className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Acknowledged</h3>
-            <p className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>{data.statistics.acknowledged}</p>
+            <AnimatedCounter
+              value={data.statistics.acknowledged}
+              className="text-3xl font-bold"
+              style={{ color: 'var(--foreground)' }}
+            />
           </div>
-          <div className="rounded-lg p-4 border drop-in-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#10B981' }}>
+          <div className="rounded-lg p-4 border drop-in-4" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#2dd4bf' }}>
             <h3 className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Resolved</h3>
-            <p className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>{data.statistics.resolved}</p>
+            <AnimatedCounter
+              value={data.statistics.resolved}
+              className="text-3xl font-bold"
+              style={{ color: 'var(--foreground)' }}
+            />
           </div>
-          <div className="rounded-lg p-4 border drop-in-5" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: 'var(--accent)' }}>
+          <div className="rounded-lg p-4 border drop-in-5" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', borderLeftWidth: '4px', borderLeftColor: '#5eead4' }}>
             <h3 className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Total Alerts</h3>
-            <p className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>{data.statistics.total}</p>
+            <AnimatedCounter
+              value={data.statistics.total}
+              className="text-3xl font-bold"
+              style={{ color: 'var(--foreground)' }}
+            />
           </div>
         </div>
 
@@ -326,22 +325,23 @@ export default function AlertHistoryPage() {
 
         {/* Alert List */}
         <div className="space-y-4">
-          {data.alerts.length === 0 ? (
-            <div className="text-center py-12 rounded-lg border" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+          {filteredAlerts.length === 0 ? (
+            <div className="text-center py-12 rounded-lg border transition-opacity duration-300" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
               <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
                 No alerts found matching the selected filters
               </p>
             </div>
           ) : (
-            data.alerts.map((alert, index) => (
+            filteredAlerts.map((alert, index) => (
               <div
                 key={alert.id}
-                className={`rounded-lg border card-hover drop-in-${Math.min(index + 3, 6)}`}
+                className="rounded-lg border card-hover"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   borderColor: 'var(--border-color)',
                   borderLeftWidth: '4px',
                   borderLeftColor: getSeverityColor(alert.severity),
+                  animation: `slideDown 0.4s ease-out ${index * 0.05}s both`,
                 }}
               >
                 <div className="p-6">
@@ -349,7 +349,9 @@ export default function AlertHistoryPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl">{getSeverityIcon(alert.severity)}</span>
+                        <span className="text-2xl" style={{ color: getSeverityColor(alert.severity) }}>
+                          {getSeverityIcon(alert.severity)}
+                        </span>
                         <h3 className="text-xl font-semibold" style={{ color: 'var(--foreground)' }}>
                           {alert.title}
                         </h3>
@@ -469,6 +471,18 @@ export default function AlertHistoryPage() {
             ))
           )}
         </div>
+        <style jsx>{`
+          @keyframes slideDown {
+            from {
+              opacity: 0;
+              transform: translateY(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
       </div>
     </div>
   );

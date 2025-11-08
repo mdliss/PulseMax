@@ -305,18 +305,17 @@ export default function ChurnPredictionPage() {
                 {filteredPredictions.map((prediction, index) => (
                   <div
                     key={prediction.customerId}
-                    className="p-4 rounded transition-all duration-500 ease-in-out"
+                    className="p-4 rounded"
                     style={{
                       backgroundColor: getRiskColor(prediction.churnRisk),
                       color: 'white',
-                      opacity: 1,
-                      transform: 'translateY(0)',
+                      animation: `slideDown 0.4s ease-out ${index * 0.05}s both`,
                     }}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold uppercase tracking-wide transition-all duration-300">
+                          <span className="text-xs font-semibold uppercase tracking-wide">
                             {prediction.churnRisk}:
                           </span>
                           <span className="font-medium">{prediction.customerId}</span>
@@ -324,7 +323,7 @@ export default function ChurnPredictionPage() {
                             {prediction.customerSegment}
                           </span>
                         </div>
-                        <div className="text-sm opacity-90 transition-all duration-300">
+                        <div className="text-sm opacity-90">
                           Churn Probability: {(prediction.churnProbability * 100).toFixed(1)}% | Model Confidence: {(prediction.confidence * 100).toFixed(0)}%
                         </div>
                       </div>
@@ -340,6 +339,18 @@ export default function ChurnPredictionPage() {
               </div>
             )}
           </div>
+          <style jsx>{`
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
         </div>
 
         {/* Understanding Churn Indicators */}
